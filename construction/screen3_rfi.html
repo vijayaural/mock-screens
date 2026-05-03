@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Crestline Building Group — RFI Routing Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F6F7F9; --surface: #FFFFFF; --navy: #0F1E3C; --navy2: #162649;
+    --accent: #1E5EFF; --accent-light: #EBF0FF; --accent-dim: rgba(30,94,255,0.1);
+    --red: #E02424; --red-bg: #FEF2F2; --amber: #C47B00; --amber-bg: #FFFBEB;
+    --green: #0F7B4E; --green-bg: #ECFDF5; --sky: #0891B2; --sky-bg: #E0F7FA;
+    --purple: #6D28D9; --purple-bg: #F5F3FF;
+    --text: #111827; --text2: #4B5563; --text3: #9CA3AF; --border: #E5E7EB;
+  }
+  body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-width: 1440px; min-height: 100vh; }
+
+  /* ── Top nav ── */
+  .topnav { height: 60px; background: var(--navy); display: flex; align-items: center; padding: 0 28px; gap: 24px; }
+  .nav-brand { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.06em; text-transform: uppercase; border-right: 1px solid rgba(255,255,255,0.15); padding-right: 20px; margin-right: 4px; }
+  .nav-links { display: flex; gap: 4px; flex: 1; }
+  .nav-link { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 5px; cursor: pointer; }
+  .nav-link.active { color: #fff; background: rgba(255,255,255,0.1); }
+  .nav-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .ai-badge { display: flex; align-items: center; gap: 6px; background: rgba(30,94,255,0.25); border: 1px solid rgba(30,94,255,0.4); border-radius: 4px; padding: 4px 10px; }
+  .ai-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #60A5FA; animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  .ai-badge-text { font-size: 10px; font-weight: 700; color: #93C5FD; letter-spacing: 0.08em; text-transform: uppercase; }
+  .nav-user { display: flex; align-items: center; gap: 8px; }
+  .nav-avatar { width: 30px; height: 30px; border-radius: 50%; background: #1E5EFF; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+  .nav-name { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+  /* ── Page header ── */
+  .page-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 28px; display: flex; align-items: flex-start; justify-content: space-between; }
+  .ph-left { }
+  .ph-project { font-size: 11px; font-weight: 600; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+  .ph-title { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+  .ph-sub { font-size: 13px; color: var(--text3); margin-top: 4px; }
+  .ph-stats { display: flex; gap: 20px; align-items: center; }
+  .stat-block { text-align: center; }
+  .stat-value { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+  .stat-value.red { color: var(--red); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.green { color: var(--green); }
+  .stat-label { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
+  .stat-divider { width: 1px; height: 40px; background: var(--border); }
+
+  /* ── Content layout ── */
+  .content { display: grid; grid-template-columns: 1fr 420px; gap: 20px; padding: 24px 28px; align-items: start; }
+
+  /* ── Filter bar ── */
+  .filter-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-pill { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 20px; cursor: pointer; border: 1.5px solid var(--border); color: var(--text2); background: var(--surface); }
+  .filter-pill.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .filter-pill.red { color: var(--red); border-color: rgba(224,36,36,0.3); background: var(--red-bg); }
+  .filter-pill.green { color: var(--green); border-color: rgba(15,123,78,0.3); background: var(--green-bg); }
+  .filter-pill.sky { color: var(--sky); border-color: rgba(8,145,178,0.3); background: var(--sky-bg); }
+
+  .search-box { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 13px; color: var(--text3); margin-left: auto; }
+
+  /* ── Table ── */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+
+  .table-top { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .table-top-title { font-size: 14px; font-weight: 600; }
+  .batch-btn { font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 6px; background: var(--accent); color: #fff; border: none; cursor: pointer; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.09em; text-transform: uppercase; padding: 11px 20px; text-align: left; background: #F9FAFB; border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #FAFBFF; }
+  tbody tr.selected { background: var(--accent-light); border-left: 3px solid var(--accent); }
+  tbody td { padding: 14px 20px; font-size: 13px; vertical-align: top; }
+
+  .rfi-id { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; color: var(--text3); margin-bottom: 3px; }
+  .rfi-title { font-size: 13px; font-weight: 500; color: var(--text); }
+
+  .status-chip { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 12px; display: inline-block; letter-spacing: 0.04em; white-space: nowrap; }
+  .status-chip.draft-ready { color: var(--accent); background: var(--accent-dim); }
+  .status-chip.pm-review { color: var(--purple); background: var(--purple-bg); }
+  .status-chip.routed { color: var(--green); background: var(--green-bg); }
+  .status-chip.waiting { color: var(--amber); background: var(--amber-bg); }
+  .status-chip.overdue { color: var(--red); background: var(--red-bg); }
+
+  .age-chip { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; padding: 3px 7px; border-radius: 5px; display: inline-block; }
+  .age-chip.red { color: var(--red); background: var(--red-bg); }
+  .age-chip.amber { color: var(--amber); background: var(--amber-bg); }
+  .age-chip.ok { color: var(--text3); background: #F3F4F6; }
+
+  .trade-tag { font-size: 11px; font-weight: 500; color: var(--text2); }
+
+  .action-cell { display: flex; gap: 6px; align-items: center; }
+  .mini-btn { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 5px; cursor: pointer; border: none; white-space: nowrap; }
+  .mini-btn.approve { background: var(--accent); color: #fff; }
+  .mini-btn.review { background: var(--accent-light); color: var(--accent); }
+  .mini-btn.view { background: #F3F4F6; color: var(--text2); }
+
+  /* ── Detail panel ── */
+  .detail-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  .detail-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .dc-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #F9FAFB; }
+  .dc-title { font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: 0.06em; text-transform: uppercase; }
+  .dc-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; color: var(--accent); background: var(--accent-light); }
+  .dc-body { padding: 16px 18px; }
+
+  .detail-rfi-id { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .detail-rfi-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .detail-field { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid #F3F4F6; }
+  .detail-field:last-child { border-bottom: none; }
+  .df-label { font-size: 11px; color: var(--text3); }
+  .df-value { font-size: 12px; font-weight: 500; color: var(--text2); text-align: right; }
+  .df-value.red { color: var(--red); }
+  .df-value.green { color: var(--green); }
+
+  .draft-box { background: #F8F9FF; border: 1.5px solid rgba(30,94,255,0.2); border-radius: 8px; padding: 14px; }
+  .draft-label { font-size: 9px; font-weight: 800; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .draft-label::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .draft-text { font-size: 12px; line-height: 1.7; color: var(--text); }
+  .draft-source { font-size: 10px; color: var(--text3); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+  .source-ref { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; color: var(--sky); }
+
+  .approve-section { display: flex; flex-direction: column; gap: 8px; }
+  .full-btn { width: 100%; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; text-align: center; }
+  .full-btn.approve { background: var(--accent); color: #fff; }
+  .full-btn.edit { background: var(--accent-light); color: var(--accent); border: 1.5px solid rgba(30,94,255,0.25); }
+  .full-btn.escalate { background: #F3F4F6; color: var(--text2); }
+
+  .routing-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #F3F4F6; }
+  .routing-item:last-child { border-bottom: none; }
+  .routing-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .routing-dot.green { background: var(--green); }
+  .routing-dot.amber { background: var(--amber); }
+  .routing-dot.blue { background: var(--accent); }
+  .routing-label { font-size: 12px; color: var(--text); }
+  .routing-time { font-size: 11px; color: var(--text3); margin-left: auto; }
+</style>
+</head>
+<body>
+
+<!-- Top Nav -->
+<div class="topnav">
+  <div class="nav-brand">Crestline Building Group</div>
+  <div class="nav-links">
+    <div class="nav-link">Job Cost</div>
+    <div class="nav-link active">RFI Routing</div>
+    <div class="nav-link">Change Orders</div>
+    <div class="nav-link">Compliance</div>
+    <div class="nav-link">Reports</div>
+  </div>
+  <div class="nav-right">
+    <div class="ai-badge">
+      <div class="ai-badge-dot"></div>
+      <div class="ai-badge-text">AI Agent Active</div>
+    </div>
+    <div class="nav-user">
+      <div class="nav-avatar">DO</div>
+      <div class="nav-name">Daniel Ortega</div>
+    </div>
+  </div>
+</div>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="ph-left">
+    <div class="ph-project">Crestline — Riverside Mixed Use</div>
+    <div class="ph-title">RFI Routing Agent</div>
+    <div class="ph-sub">AI-drafted responses ready for PM approval. 15-trade project.</div>
+  </div>
+  <div class="ph-stats">
+    <div class="stat-block">
+      <div class="stat-value red">7</div>
+      <div class="stat-label">Overdue</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-block">
+      <div class="stat-value amber">11</div>
+      <div class="stat-label">Open</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-block">
+      <div class="stat-value green">5</div>
+      <div class="stat-label">Draft Ready</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-block">
+      <div class="stat-value">1.7 days</div>
+      <div class="stat-label">Avg Response</div>
+    </div>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+  <!-- Left: Table -->
+  <div>
+    <div class="filter-bar">
+      <div class="filter-pill active">All RFIs</div>
+      <div class="filter-pill red">Overdue</div>
+      <div class="filter-pill green">Draft Ready</div>
+      <div class="filter-pill sky">Routed</div>
+      <div class="search-box">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search RFIs...
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-top">
+        <div class="table-top-title">Open RFI Queue — Riverside Mixed Use</div>
+        <div class="batch-btn">Approve All Drafts (5)</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>RFI</th>
+            <th>Trade</th>
+            <th>Status</th>
+            <th>Age</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="selected">
+            <td>
+              <div class="rfi-id">RFI-082</div>
+              <div class="rfi-title">Curtainwall anchor bolt spacing conflict at Grid Line C, Level 8</div>
+            </td>
+            <td><div class="trade-tag">Glazing · Hartwell Glass</div></td>
+            <td><span class="status-chip draft-ready">Draft Ready</span></td>
+            <td><span class="age-chip amber">3d</span></td>
+            <td>
+              <div class="action-cell">
+                <div class="mini-btn approve">Approve</div>
+                <div class="mini-btn review">Edit</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rfi-id">RFI-079</div>
+              <div class="rfi-title">Clarification on roof drain overflow elevation — Spec Section 22 14 13</div>
+            </td>
+            <td><div class="trade-tag">Plumbing · Apex Mechanical</div></td>
+            <td><span class="status-chip overdue">Overdue</span></td>
+            <td><span class="age-chip red">7d</span></td>
+            <td>
+              <div class="action-cell">
+                <div class="mini-btn review">Assign</div>
+                <div class="mini-btn view">View</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rfi-id">RFI-077</div>
+              <div class="rfi-title">Conduit routing through shear wall — structural conflict</div>
+            </td>
+            <td><div class="trade-tag">Electrical · Delco Electrical</div></td>
+            <td><span class="status-chip draft-ready">Draft Ready</span></td>
+            <td><span class="age-chip amber">4d</span></td>
+            <td>
+              <div class="action-cell">
+                <div class="mini-btn approve">Approve</div>
+                <div class="mini-btn review">Edit</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rfi-id">RFI-074</div>
+              <div class="rfi-title">Slab depression dimension at elevator pit — dimension missing from drawings</div>
+            </td>
+            <td><div class="trade-tag">Concrete · Riverstone Concrete</div></td>
+            <td><span class="status-chip pm-review">PM Review</span></td>
+            <td><span class="age-chip amber">2d</span></td>
+            <td>
+              <div class="action-cell">
+                <div class="mini-btn approve">Approve</div>
+                <div class="mini-btn view">View</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rfi-id">RFI-071</div>
+              <div class="rfi-title">Fire stopping at mechanical duct penetration — assembly code conflict</div>
+            </td>
+            <td><div class="trade-tag">Fire Protection · Summit Fire</div></td>
+            <td><span class="status-chip overdue">Overdue</span></td>
+            <td><span class="age-chip red">9d</span></td>
+            <td>
+              <div class="action-cell">
+                <div class="mini-btn review">Assign</div>
+                <div class="mini-btn view">View</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rfi-id">RFI-068</div>
+              <div class="rfi-title">Paint finish specification for lobby feature wall — color schedule reference</div>
+            </td>
+            <td><div class="trade-tag">Finishes · Premier Interiors</div></td>
+            <td><span class="status-chip routed">Routed</span></td>
+            <td><span class="age-chip ok">1d</span></td>
+            <td>
+              <div class="action-cell">
+                <div class="mini-btn view">Tracking</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="rfi-id">RFI-065</div>
+              <div class="rfi-title">Mechanical room acoustical ceiling clearance at fan coil units</div>
+            </td>
+            <td><div class="trade-tag">Mechanical · Apex Mechanical</div></td>
+            <td><span class="status-chip draft-ready">Draft Ready</span></td>
+            <td><span class="age-chip ok">1d</span></td>
+            <td>
+              <div class="action-cell">
+                <div class="mini-btn approve">Approve</div>
+                <div class="mini-btn review">Edit</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right: Detail Panel -->
+  <div class="detail-panel">
+
+    <div class="detail-card">
+      <div class="dc-header">
+        <div class="dc-title">RFI Detail — Selected</div>
+        <span class="dc-badge">Draft Ready</span>
+      </div>
+      <div class="dc-body">
+        <div class="detail-rfi-id">RFI-082 · Glazing</div>
+        <div class="detail-rfi-title">Curtainwall anchor bolt spacing conflict at Grid Line C, Level 8</div>
+        <div class="detail-field">
+          <div class="df-label">Submitted by</div>
+          <div class="df-value">Marcus Tilley · Hartwell Glass</div>
+        </div>
+        <div class="detail-field">
+          <div class="df-label">Submitted</div>
+          <div class="df-value">June 16, 2025</div>
+        </div>
+        <div class="detail-field">
+          <div class="df-label">Age</div>
+          <div class="df-value red">3 days (target: 2 days)</div>
+        </div>
+        <div class="detail-field">
+          <div class="df-label">Spec Reference</div>
+          <div class="df-value">08 44 13 · Structural Sealant Glazing</div>
+        </div>
+        <div class="detail-field">
+          <div class="df-label">Drawing Reference</div>
+          <div class="df-value">A-841, A-842 Rev 2</div>
+        </div>
+        <div class="detail-field">
+          <div class="df-label">Route To</div>
+          <div class="df-value green">EOR — Thornfield Structural Eng.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="dc-header">
+        <div class="dc-title">AI-Drafted Response</div>
+        <span style="font-size:10px;color:#9CA3AF;">Pulled from spec + drawings</span>
+      </div>
+      <div class="dc-body">
+        <div class="draft-box">
+          <div class="draft-label">Response Draft</div>
+          <div class="draft-text">
+            Per Spec Section 08 44 13.2.4 and structural drawing A-842 Rev 2, anchor bolt spacing at Grid Line C shall be 18 inches on center maximum for the Level 8 curtainwall attachment. The conflict noted by Hartwell arises from an uncoordinated dimension on drawing A-841. The Rev 2 drawing governs. Contractor to confirm field conditions at this location before proceeding. No design change required.
+          </div>
+          <div class="draft-source">
+            Source references: <span class="source-ref">A-842-Rev2 p.4</span> · <span class="source-ref">Spec 08 44 13 §2.4</span>
+          </div>
+        </div>
+        <div class="approve-section" style="margin-top:14px;">
+          <div class="full-btn approve">Approve and Route to Hartwell Glass</div>
+          <div class="full-btn edit">Edit Draft</div>
+          <div class="full-btn escalate">Escalate to EOR for Resolution</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="dc-header">
+        <div class="dc-title">Routing History</div>
+      </div>
+      <div class="dc-body">
+        <div class="routing-item">
+          <div class="routing-dot blue"></div>
+          <div class="routing-label">RFI received from Hartwell Glass</div>
+          <div class="routing-time">Jun 16 · 8:11 AM</div>
+        </div>
+        <div class="routing-item">
+          <div class="routing-dot blue"></div>
+          <div class="routing-label">Agent categorized — Glazing / Structural</div>
+          <div class="routing-time">Jun 16 · 8:11 AM</div>
+        </div>
+        <div class="routing-item">
+          <div class="routing-dot blue"></div>
+          <div class="routing-label">Spec and drawing content retrieved</div>
+          <div class="routing-time">Jun 16 · 8:12 AM</div>
+        </div>
+        <div class="routing-item">
+          <div class="routing-dot amber"></div>
+          <div class="routing-label">Draft response generated — awaiting PM approval</div>
+          <div class="routing-time">Jun 16 · 8:13 AM</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

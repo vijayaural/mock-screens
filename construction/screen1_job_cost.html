@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Crestline Building Group — Job Cost Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F4F5F7; --surface: #FFFFFF; --nav-bg: #1A2233;
+    --nav-text: #A8B4CC; --accent: #2563EB; --accent-light: #EFF6FF;
+    --red: #DC2626; --red-bg: #FEF2F2; --amber: #D97706; --amber-bg: #FFFBEB;
+    --green: #16A34A; --green-bg: #F0FDF4; --text-primary: #0F1929;
+    --text-secondary: #5A6478; --text-muted: #8C96A8; --border: #E2E6EE;
+  }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text-primary); min-width: 1440px; min-height: 100vh; display: flex; }
+  .sidebar { width: 220px; background: var(--nav-bg); display: flex; flex-direction: column; flex-shrink: 0; position: fixed; top: 0; left: 0; bottom: 0; }
+  .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .logo-mark { font-size: 13px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.04em; text-transform: uppercase; }
+  .logo-sub { font-size: 10px; color: var(--nav-text); margin-top: 2px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .tayana-badge { display: inline-block; background: rgba(37,99,235,0.25); border: 1px solid rgba(37,99,235,0.4); color: #93C5FD; font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; margin-top: 8px; }
+  .nav-section { padding: 20px 12px 8px; }
+  .nav-label { font-size: 9px; font-weight: 600; color: var(--nav-text); letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; font-size: 13px; color: var(--nav-text); cursor: pointer; margin-bottom: 1px; }
+  .nav-item.active { background: rgba(37,99,235,0.18); color: #FFFFFF; }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-left: auto; }
+  .sidebar-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.07); }
+  .user-row { display: flex; align-items: center; gap: 10px; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #2563EB, #1D4ED8); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .user-name { font-size: 12px; font-weight: 600; color: #E2E8F0; }
+  .user-role { font-size: 10px; color: var(--nav-text); }
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .page-title { font-size: 15px; font-weight: 600; }
+  .project-selector { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .sync-info { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .tag { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-secondary); background: var(--surface); }
+  .sources-tag { display: flex; gap: 6px; }
+  .content { padding: 28px 32px; flex: 1; }
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .card-label { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+  .card-value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .card-value.red { color: var(--red); }
+  .card-sub { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  .card-change { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-top: 8px; }
+  .card-change.green { color: var(--green); background: var(--green-bg); }
+  .card-change.amber { color: var(--amber); background: var(--amber-bg); }
+  .grid-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+  .table-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+  .table-title { font-size: 14px; font-weight: 600; }
+  .table-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .filter-row { display: flex; gap: 8px; }
+  .filter-btn { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 5px; border: 1px solid var(--border); cursor: pointer; color: var(--text-secondary); background: var(--bg); }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .project-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 22px; }
+  .ptab { font-size: 12px; font-weight: 500; color: var(--text-muted); padding: 10px 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .ptab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; padding: 12px 22px; text-align: left; background: #FAFBFC; border-bottom: 1px solid var(--border); }
+  thead th:not(:first-child) { text-align: right; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td { padding: 14px 22px; font-size: 13px; vertical-align: middle; }
+  tbody td:not(:first-child) { text-align: right; }
+  .cost-code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+  .cost-name { font-size: 13px; font-weight: 500; }
+  .money { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; }
+  .variance-badge { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+  .variance-badge.red { color: var(--red); background: var(--red-bg); }
+  .variance-badge.green { color: var(--green); background: var(--green-bg); }
+  .variance-badge.amber { color: var(--amber); background: var(--amber-bg); }
+  .progress-bar { width: 80px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; border-radius: 2px; }
+  .progress-fill.red { background: var(--red); }
+  .progress-fill.green { background: var(--green); }
+  .progress-fill.amber { background: var(--amber); }
+  .completion { font-size: 11px; color: var(--text-muted); }
+  .status-source { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-muted); padding: 10px 22px; background: #FAFBFC; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .source-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 600; color: var(--text-secondary); }
+  .source-chip::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+  .alert-panel { display: flex; flex-direction: column; gap: 14px; }
+  .alert-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+  .flagged-bar { height: 3px; background: var(--red); }
+  .flagged-bar.amber { background: var(--amber); }
+  .alert-header { padding: 16px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .alert-title { font-size: 13px; font-weight: 600; }
+  .alert-count { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .alert-count.red { color: var(--red); background: var(--red-bg); }
+  .alert-count.amber { color: var(--amber); background: var(--amber-bg); }
+  .alert-item { padding: 12px 18px; border-bottom: 1px solid var(--border); }
+  .alert-item:last-child { border-bottom: none; }
+  .alert-item-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+  .alert-item-name { font-size: 12px; font-weight: 600; }
+  .alert-item-amount { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 700; }
+  .alert-item-amount.red { color: var(--red); }
+  .alert-item-amount.amber { color: var(--amber); }
+  .alert-item-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+  .alert-action { font-size: 11px; font-weight: 600; color: var(--accent); cursor: pointer; }
+  .ua-sm { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #2563EB, #1D4ED8); display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; }
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">Crestline Building Group</div>
+    <div class="logo-sub">Job Intelligence</div>
+    <div class="tayana-badge">Powered by Tayana AI</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Projects</div>
+    <div class="nav-item active">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Job Cost Monitor
+    </div>
+    <div class="nav-item">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      RFI Tracker
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+      Change Orders
+    </div>
+    <div class="nav-item">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Subcontractors
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar">DO</div>
+      <div>
+        <div class="user-name">Daniel Ortega</div>
+        <div class="user-role">Chief Operating Officer</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title">Job Cost Intelligence</div>
+      <div class="project-selector">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Crestline — Riverside Mixed Use
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-info"><div class="sync-dot"></div>Synced 4 min ago</div>
+      <div class="sources-tag">
+        <div class="tag">Procore</div>
+        <div class="tag">Sage 300</div>
+        <div class="tag">Acumatica</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="cards">
+      <div class="card">
+        <div class="card-label">Contract Value</div>
+        <div class="card-value">$18.4M</div>
+        <div class="card-sub">Riverside Mixed Use</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Total Budget (Period)</div>
+        <div class="card-value">$4,935,000</div>
+        <div class="card-sub">Current cost code scope</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Actuals to Date</div>
+        <div class="card-value">$4,850,400</div>
+        <div class="card-change green">▲ $84,600 under budget</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Variance Alerts</div>
+        <div class="card-value red">3</div>
+        <div class="card-change amber">2 critical · 1 watch</div>
+      </div>
+    </div>
+
+    <div class="grid-layout">
+      <div class="table-card">
+        <div class="table-header">
+          <div>
+            <div class="table-title">Cost Code Variance Report</div>
+            <div class="table-subtitle">Updated in real time from Procore and Sage 300</div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-btn active">All Codes</div>
+            <div class="filter-btn">Flagged</div>
+            <div class="filter-btn">On Track</div>
+          </div>
+        </div>
+        <div class="project-tabs">
+          <div class="ptab active">Riverside Mixed Use</div>
+          <div class="ptab">Westfield Commercial</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Cost Division</th>
+              <th>Budget</th>
+              <th>Actuals</th>
+              <th>% Complete</th>
+              <th>Variance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="cost-code">03-000</div><div class="cost-name">Concrete</div></td>
+              <td><span class="money">$850,000</span></td>
+              <td><span class="money">$892,400</span></td>
+              <td><div class="completion">78%</div><div class="progress-bar"><div class="progress-fill red" style="width:78%"></div></div></td>
+              <td><span class="variance-badge red">+$42,400</span></td>
+            </tr>
+            <tr>
+              <td><div class="cost-code">05-000</div><div class="cost-name">Structural Steel</div></td>
+              <td><span class="money">$1,240,000</span></td>
+              <td><span class="money">$1,198,000</span></td>
+              <td><div class="completion">91%</div><div class="progress-bar"><div class="progress-fill green" style="width:91%"></div></div></td>
+              <td><span class="variance-badge green">−$42,000</span></td>
+            </tr>
+            <tr>
+              <td><div class="cost-code">07-000</div><div class="cost-name">Waterproofing</div></td>
+              <td><span class="money">$185,000</span></td>
+              <td><span class="money">$176,500</span></td>
+              <td><div class="completion">100%</div><div class="progress-bar"><div class="progress-fill green" style="width:100%"></div></div></td>
+              <td><span class="variance-badge green">−$8,500</span></td>
+            </tr>
+            <tr>
+              <td><div class="cost-code">08-000</div><div class="cost-name">Doors &amp; Windows</div></td>
+              <td><span class="money">$320,000</span></td>
+              <td><span class="money">$387,200</span></td>
+              <td><div class="completion">65%</div><div class="progress-bar"><div class="progress-fill red" style="width:65%"></div></div></td>
+              <td><span class="variance-badge red">+$67,200</span></td>
+            </tr>
+            <tr>
+              <td><div class="cost-code">09-000</div><div class="cost-name">Finishes</div></td>
+              <td><span class="money">$640,000</span></td>
+              <td><span class="money">$521,300</span></td>
+              <td><div class="completion">52%</div><div class="progress-bar"><div class="progress-fill green" style="width:52%"></div></div></td>
+              <td><span class="variance-badge green">−$118,700</span></td>
+            </tr>
+            <tr>
+              <td><div class="cost-code">15-000</div><div class="cost-name">Mechanical</div></td>
+              <td><span class="money">$920,000</span></td>
+              <td><span class="money">$934,500</span></td>
+              <td><div class="completion">84%</div><div class="progress-bar"><div class="progress-fill amber" style="width:84%"></div></div></td>
+              <td><span class="variance-badge amber">+$14,500</span></td>
+            </tr>
+            <tr>
+              <td><div class="cost-code">16-000</div><div class="cost-name">Electrical</div></td>
+              <td><span class="money">$780,000</span></td>
+              <td><span class="money">$741,000</span></td>
+              <td><div class="completion">73%</div><div class="progress-bar"><div class="progress-fill green" style="width:73%"></div></div></td>
+              <td><span class="variance-badge green">−$39,000</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="status-source">
+          Data sources: <span class="source-chip">Procore</span> <span class="source-chip">Sage 300</span> <span class="source-chip">Acumatica</span>
+          &nbsp;· Actuals reflect posted transactions only. Updated every 15 minutes.
+        </div>
+      </div>
+
+      <div class="alert-panel">
+        <div class="alert-card">
+          <div class="flagged-bar"></div>
+          <div class="alert-header">
+            <div class="alert-title">Variance Alerts</div>
+            <span class="alert-count red">2 Critical</span>
+          </div>
+          <div class="alert-item">
+            <div class="alert-item-header">
+              <div class="alert-item-name">08-000 Doors &amp; Windows</div>
+              <div class="alert-item-amount red">+$67,200</div>
+            </div>
+            <div class="alert-item-meta">21% over budget at 65% completion. Pace indicates final overage of ~$100K.</div>
+            <div class="alert-action">Review cost detail →</div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-item-header">
+              <div class="alert-item-name">03-000 Concrete</div>
+              <div class="alert-item-amount red">+$42,400</div>
+            </div>
+            <div class="alert-item-meta">5% over budget at 78% completion. Sourced to 3 subcontractor invoices.</div>
+            <div class="alert-action">Review invoices →</div>
+          </div>
+        </div>
+
+        <div class="alert-card">
+          <div class="flagged-bar amber"></div>
+          <div class="alert-header">
+            <div class="alert-title">Watch Items</div>
+            <span class="alert-count amber">1 Item</span>
+          </div>
+          <div class="alert-item">
+            <div class="alert-item-header">
+              <div class="alert-item-name">15-000 Mechanical</div>
+              <div class="alert-item-amount amber">+$14,500</div>
+            </div>
+            <div class="alert-item-meta">1.6% over at 84% completion. Within threshold but trending upward this week.</div>
+            <div class="alert-action">Monitor →</div>
+          </div>
+        </div>
+
+        <div class="alert-card">
+          <div class="alert-header">
+            <div class="alert-title">Controller Notes</div>
+          </div>
+          <div class="alert-item" style="font-size:12px; color: #5A6478; line-height:1.6;">
+            08-000 variance sourced to unmatched change order PCO-031 from Hartwell Glass Inc., pending CM approval. Concrete overage tied to pump truck add-service on Levels 4 and 5. Both items require review before draw #6.
+          </div>
+          <div class="alert-item" style="display:flex; align-items:center; gap:8px; font-size:11px; color:#8C96A8;">
+            <div class="ua-sm">MR</div>
+            Maria Reyes · Controller · Updated 11:42 AM
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440">
+<title>Crestline Building Group — Subcontractor Compliance Voice Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #080E1A; --surface: #0D1525; --surface2: #111D30;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --green: #22D3A0; --green-dim: rgba(34,211,160,0.12); --green-glow: rgba(34,211,160,0.3);
+    --amber: #F59E0B; --amber-dim: rgba(245,158,11,0.12);
+    --red: #F87171; --red-dim: rgba(248,113,113,0.12);
+    --blue: #60A5FA; --blue-dim: rgba(96,165,250,0.12);
+    --text-primary: #F0F4FF; --text-secondary: #8899BB; --text-muted: #4A5A7A;
+    --accent: #3B82F6;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-primary); min-width: 1440px; min-height: 100vh; }
+
+  /* noise overlay */
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: 0.4; }
+
+  .layout { display: grid; grid-template-columns: 260px 1fr 340px; min-height: 100vh; position: relative; z-index: 1; }
+
+  /* ── LEFT PANEL ── */
+  .left-panel { background: var(--surface); border-right: 1px solid var(--border); padding: 24px 0; display: flex; flex-direction: column; }
+  .brand { padding: 0 20px 20px; border-bottom: 1px solid var(--border); }
+  .brand-name { font-size: 12px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.08em; text-transform: uppercase; }
+  .brand-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .tayana-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(34,211,160,0.1); border: 1px solid rgba(34,211,160,0.25); color: var(--green); font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; margin-top: 10px; }
+  .tayana-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .section-label { font-size: 9px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; padding: 20px 20px 8px; }
+
+  .queue-item { padding: 12px 20px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; }
+  .queue-item.active { background: rgba(34,211,160,0.06); border-left-color: var(--green); }
+  .queue-item-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .queue-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+  .queue-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .queue-badge.active { color: var(--green); background: var(--green-dim); }
+  .queue-badge.pending { color: var(--amber); background: var(--amber-dim); }
+  .queue-badge.done { color: var(--text-muted); background: rgba(255,255,255,0.05); }
+  .queue-meta { font-size: 11px; color: var(--text-secondary); }
+  .queue-issue { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  .left-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid var(--border); }
+  .agent-row { display: flex; align-items: center; gap: 10px; }
+  .agent-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green-glow); flex-shrink: 0; animation: pulse-dot 2s infinite; }
+  .agent-label { font-size: 11px; color: var(--text-secondary); }
+  .agent-status { font-size: 10px; color: var(--green); font-weight: 600; margin-top: 1px; }
+
+  /* ── CENTER PANEL ── */
+  .center-panel { display: flex; flex-direction: column; background: var(--bg); }
+
+  .call-header { padding: 24px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--surface); }
+  .call-status-group { display: flex; align-items: center; gap: 16px; }
+  .live-indicator { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--green); letter-spacing: 0.08em; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green-glow); animation: pulse-dot 1.5s infinite; }
+  .call-timer { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.04em; }
+  .call-subject { font-size: 13px; color: var(--text-secondary); }
+  .call-actions { display: flex; gap: 10px; }
+  .action-btn { padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+  .action-btn.end { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+  .action-btn.mute { background: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid var(--border2); }
+  .action-btn.transfer { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.3); }
+
+  /* waveform */
+  .waveform-zone { padding: 20px 32px; display: flex; align-items: center; gap: 20px; }
+  .waveform { display: flex; align-items: center; gap: 3px; height: 48px; }
+  .bar { width: 4px; border-radius: 2px; background: var(--green); opacity: 0.7; animation: wave 0.8s ease-in-out infinite; }
+  .bar:nth-child(1){height:18px;animation-delay:0s;}
+  .bar:nth-child(2){height:32px;animation-delay:0.1s;}
+  .bar:nth-child(3){height:24px;animation-delay:0.2s;}
+  .bar:nth-child(4){height:42px;animation-delay:0.15s;}
+  .bar:nth-child(5){height:28px;animation-delay:0.25s;}
+  .bar:nth-child(6){height:36px;animation-delay:0.05s;}
+  .bar:nth-child(7){height:20px;animation-delay:0.3s;}
+  .bar:nth-child(8){height:44px;animation-delay:0.12s;}
+  .bar:nth-child(9){height:30px;animation-delay:0.22s;}
+  .bar:nth-child(10){height:16px;animation-delay:0.08s;}
+  .bar:nth-child(11){height:38px;animation-delay:0.18s;}
+  .bar:nth-child(12){height:26px;animation-delay:0.28s;}
+  @keyframes wave { 0%,100%{transform:scaleY(1);opacity:0.7;} 50%{transform:scaleY(0.4);opacity:0.3;} }
+  .speaking-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--green); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* transcript */
+  .transcript-area { flex: 1; padding: 0 32px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+
+  .t-row { display: flex; gap: 12px; align-items: flex-start; }
+  .t-row.agent { flex-direction: row-reverse; }
+
+  .t-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+  .t-avatar.ai { background: rgba(34,211,160,0.15); color: var(--green); border: 1px solid rgba(34,211,160,0.3); }
+  .t-avatar.human { background: rgba(96,165,250,0.12); color: var(--blue); border: 1px solid rgba(96,165,250,0.25); }
+
+  .t-bubble { max-width: 520px; }
+  .t-label { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 5px; }
+  .t-label.ai { color: var(--green); }
+  .t-label.human { color: var(--blue); text-align: right; }
+
+  .t-msg { font-size: 13px; line-height: 1.6; color: var(--text-primary); background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
+  .t-msg.agent { background: rgba(34,211,160,0.07); border-color: rgba(34,211,160,0.2); text-align: right; }
+
+  .t-time { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted); margin-top: 4px; }
+  .t-row.agent .t-time { text-align: right; }
+
+  /* typing indicator */
+  .typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
+  .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: typing 1.2s infinite; }
+  .typing-dot:nth-child(2){animation-delay:0.2s;}
+  .typing-dot:nth-child(3){animation-delay:0.4s;}
+  @keyframes typing { 0%,100%{opacity:0.3;transform:translateY(0);} 50%{opacity:1;transform:translateY(-4px);} }
+
+  /* compliance alert banner */
+  .compliance-banner { margin: 0 32px 16px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .banner-icon { font-size: 16px; flex-shrink: 0; }
+  .banner-text { font-size: 12px; color: var(--amber); line-height: 1.5; }
+  .banner-text strong { font-weight: 700; }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel { background: var(--surface); border-left: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+
+  .r-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .r-card-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .r-card-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase; }
+  .r-card-body { padding: 14px 16px; }
+
+  .sub-name { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .sub-contact { font-size: 12px; color: var(--text-secondary); margin-bottom: 2px; }
+  .sub-phone { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--blue); }
+
+  .field-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .field-row:last-child { border-bottom: none; }
+  .field-label { font-size: 11px; color: var(--text-muted); }
+  .field-value { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+  .field-value.amber { color: var(--amber); }
+  .field-value.red { color: var(--red); }
+  .field-value.green { color: var(--green); }
+
+  .gap-item { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .gap-item:last-child { border-bottom: none; }
+  .gap-name { font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+  .gap-detail { font-size: 11px; color: var(--text-muted); }
+  .gap-status { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; display: inline-block; margin-top: 4px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .gap-status.expired { color: var(--red); background: var(--red-dim); }
+  .gap-status.missing { color: var(--amber); background: var(--amber-dim); }
+
+  .outcome-row { display: flex; gap: 8px; margin-top: 4px; }
+  .outcome-btn { flex: 1; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; text-align: center; }
+  .outcome-btn.commit { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,211,160,0.3); }
+  .outcome-btn.escalate { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+  .outcome-btn.dispute { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+
+  .log-item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .log-item:last-child { border-bottom: none; }
+  .log-time { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
+  .log-text { font-size: 11px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- LEFT: Call Queue -->
+  <div class="left-panel">
+    <div class="brand">
+      <div class="brand-name">Crestline Building Group</div>
+      <div class="brand-sub">Compliance Voice Agent</div>
+      <div class="tayana-badge">AI Agent Active</div>
+    </div>
+
+    <div class="section-label">Today's Call Queue</div>
+
+    <div class="queue-item active">
+      <div class="queue-item-top">
+        <div class="queue-name">Hartwell Glass Inc.</div>
+        <div class="queue-badge active">Live</div>
+      </div>
+      <div class="queue-meta">Marcus Tilley · (614) 882-4401</div>
+      <div class="queue-issue">COI expired Jun 12 · Lien waiver missing</div>
+    </div>
+
+    <div class="queue-item">
+      <div class="queue-item-top">
+        <div class="queue-name">Apex Mechanical LLC</div>
+        <div class="queue-badge pending">Queued</div>
+      </div>
+      <div class="queue-meta">Sandra Reeves · (513) 290-1174</div>
+      <div class="queue-issue">Lien waiver — Draw #5 outstanding</div>
+    </div>
+
+    <div class="queue-item">
+      <div class="queue-item-top">
+        <div class="queue-name">Delco Electrical Group</div>
+        <div class="queue-badge pending">Queued</div>
+      </div>
+      <div class="queue-meta">Terrence Wu · (419) 550-7823</div>
+      <div class="queue-issue">W-9 update required</div>
+    </div>
+
+    <div class="queue-item">
+      <div class="queue-item-top">
+        <div class="queue-name">Riverstone Concrete</div>
+        <div class="queue-badge done">Complete</div>
+      </div>
+      <div class="queue-meta">James Okoye · Committed 9:14 AM</div>
+      <div class="queue-issue">COI renewal confirmed for Jun 28</div>
+    </div>
+
+    <div class="left-footer">
+      <div class="agent-row">
+        <div class="agent-dot"></div>
+        <div>
+          <div class="agent-label">Compliance Voice Agent</div>
+          <div class="agent-status">4 calls scheduled · 1 active</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: Live Call -->
+  <div class="center-panel">
+    <div class="call-header">
+      <div class="call-status-group">
+        <div class="live-indicator"><div class="live-dot"></div>LIVE CALL</div>
+        <div class="call-timer">02:14</div>
+        <div class="call-subject">Subcontractor Compliance — Hartwell Glass Inc.</div>
+      </div>
+      <div class="call-actions">
+        <div class="action-btn mute">Mute</div>
+        <div class="action-btn transfer">Transfer to PM</div>
+        <div class="action-btn end">End Call</div>
+      </div>
+    </div>
+
+    <div class="waveform-zone">
+      <div class="waveform">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="speaking-label">Agent Speaking</div>
+    </div>
+
+    <div class="compliance-banner">
+      <div class="banner-icon">⚠</div>
+      <div class="banner-text">
+        <strong>Active draw risk:</strong> Draw Request #6 is scheduled for June 24. Certificate of Insurance for Hartwell Glass expired June 12. Lien waiver for Draw #5 has not been received. Both items must be resolved before draw processing can proceed.
+      </div>
+    </div>
+
+    <div class="transcript-area">
+
+      <div class="t-row">
+        <div class="t-avatar ai">AI</div>
+        <div class="t-bubble">
+          <div class="t-label ai">Tayana Compliance Agent</div>
+          <div class="t-msg">Good morning. This is an automated compliance follow-up call from Crestline Building Group regarding the Riverside Mixed Use project. I am trying to reach Marcus Tilley. Is this Marcus?</div>
+          <div class="t-time">09:31:04</div>
+        </div>
+      </div>
+
+      <div class="t-row agent">
+        <div class="t-avatar human">MT</div>
+        <div class="t-bubble">
+          <div class="t-label human">Marcus Tilley · Hartwell Glass Inc.</div>
+          <div class="t-msg agent">Yeah, this is Marcus. What's this about?</div>
+          <div class="t-time">09:31:12</div>
+        </div>
+      </div>
+
+      <div class="t-row">
+        <div class="t-avatar ai">AI</div>
+        <div class="t-bubble">
+          <div class="t-label ai">Tayana Compliance Agent</div>
+          <div class="t-msg">Hi Marcus, thank you for taking my call. I am reaching out because we have two compliance items on file for Hartwell Glass that need to be resolved before Draw Request number 6 on June 24. The first is your Certificate of Insurance, which shows an expiration date of June 12. The second is the lien waiver for Draw number 5, which we have not yet received. Can you confirm when we can expect those?</div>
+          <div class="t-time">09:31:20</div>
+        </div>
+      </div>
+
+      <div class="t-row agent">
+        <div class="t-avatar human">MT</div>
+        <div class="t-bubble">
+          <div class="t-label human">Marcus Tilley · Hartwell Glass Inc.</div>
+          <div class="t-msg agent">Right, I know the COI lapsed. Our broker is already on it. Should have the renewal by end of week. The lien waiver I can get you today, I just need an email to send it to.</div>
+          <div class="t-time">09:31:44</div>
+        </div>
+      </div>
+
+      <div class="t-row">
+        <div class="t-avatar ai">AI</div>
+        <div class="t-bubble">
+          <div class="t-label ai">Tayana Compliance Agent</div>
+          <div class="t-msg">Thank you Marcus. I will log that the COI renewal is expected by Friday June 21, and that the lien waiver will be submitted today. The email address for compliance documents is <span style="color:#60A5FA;">compliance@crestlinebg.com</span>. I will send you a confirmation summary after this call. Is there anything else you need from our side to clear these items?</div>
+          <div class="t-time">09:32:01</div>
+        </div>
+      </div>
+
+      <div class="t-row agent">
+        <div class="t-avatar human">MT</div>
+        <div class="t-bubble">
+          <div class="t-label human">Marcus Tilley · Hartwell Glass Inc.</div>
+          <div class="t-msg agent">No, that works. I will send the lien waiver in the next hour.</div>
+          <div class="t-time">09:32:18</div>
+        </div>
+      </div>
+
+      <div class="t-row">
+        <div class="t-avatar ai">AI</div>
+        <div class="t-bubble">
+          <div class="t-label ai">Tayana Compliance Agent</div>
+          <div class="t-msg" style="background:rgba(34,211,160,0.07); border-color:rgba(34,211,160,0.2);">
+            <span style="color:#22D3A0; font-weight:600;">Confirming commitments recorded:</span><br>
+            Lien waiver — Draw #5: submitted today by Marcus Tilley.<br>
+            Certificate of Insurance renewal: delivered by Friday June 21.<br><br>
+            A written confirmation will be emailed to you at <span style="color:#60A5FA;">mtilley@hartwellglass.com</span>. Thank you Marcus, have a good morning.
+          </div>
+          <div class="t-time">09:32:31</div>
+        </div>
+      </div>
+
+      <!-- Typing -->
+      <div class="t-row">
+        <div class="t-avatar ai">AI</div>
+        <div class="t-bubble">
+          <div class="t-label ai">Processing outcome...</div>
+          <div class="t-msg">
+            <div class="typing">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Context Panel -->
+  <div class="right-panel">
+
+    <div class="r-card">
+      <div class="r-card-header">
+        <div class="r-card-title">Subcontractor on Call</div>
+        <span style="font-size:10px; color:#22D3A0; font-weight:600;">ACTIVE</span>
+      </div>
+      <div class="r-card-body">
+        <div class="sub-name">Hartwell Glass Inc.</div>
+        <div class="sub-contact">Marcus Tilley · Account Manager</div>
+        <div class="sub-phone">(614) 882-4401</div>
+        <div style="margin-top:12px;">
+          <div class="field-row">
+            <div class="field-label">Project</div>
+            <div class="field-value">Riverside Mixed Use</div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Trade</div>
+            <div class="field-value">Glazing — Div 08</div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Subcontract Value</div>
+            <div class="field-value">$387,200</div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Amount Billed to Date</div>
+            <div class="field-value">$281,000</div>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Draw #6 Risk</div>
+            <div class="field-value red">Blocked</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-header">
+        <div class="r-card-title">Compliance Gaps</div>
+        <span style="font-size:10px; color:#F59E0B; font-weight:600;">2 OPEN</span>
+      </div>
+      <div class="r-card-body">
+        <div class="gap-item">
+          <div class="gap-name">Certificate of Insurance</div>
+          <div class="gap-detail">Expired June 12, 2025 · Renewal required before draw</div>
+          <div class="gap-status expired">Expired</div>
+        </div>
+        <div class="gap-item">
+          <div class="gap-name">Lien Waiver — Draw #5</div>
+          <div class="gap-detail">Draw #5 closed May 30 · Waiver not yet received</div>
+          <div class="gap-status missing">Missing</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-header">
+        <div class="r-card-title">Call Outcome</div>
+      </div>
+      <div class="r-card-body">
+        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">Select the outcome to log and close this call.</div>
+        <div class="outcome-row">
+          <div class="outcome-btn commit">Commitments Received</div>
+        </div>
+        <div class="outcome-row" style="margin-top:8px;">
+          <div class="outcome-btn escalate">Escalate to PM</div>
+          <div class="outcome-btn dispute">Sub Disputes Item</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-header">
+        <div class="r-card-title">Call Log</div>
+      </div>
+      <div class="r-card-body">
+        <div class="log-item">
+          <div class="log-time">09:31:04</div>
+          <div class="log-text">Agent initiated call to Marcus Tilley</div>
+        </div>
+        <div class="log-item">
+          <div class="log-time">09:31:12</div>
+          <div class="log-text">Contact confirmed — Marcus Tilley</div>
+        </div>
+        <div class="log-item">
+          <div class="log-time">09:31:44</div>
+          <div class="log-text">COI renewal committed for Jun 21</div>
+        </div>
+        <div class="log-item">
+          <div class="log-time">09:32:18</div>
+          <div class="log-text">Lien waiver committed for today</div>
+        </div>
+        <div class="log-item">
+          <div class="log-time">09:32:31</div>
+          <div class="log-text" style="color:var(--green);">Confirmation email queued to mtilley@hartwellglass.com</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
