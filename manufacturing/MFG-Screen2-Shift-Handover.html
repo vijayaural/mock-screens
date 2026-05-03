@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian Industrial Group — Shift Handover Brief</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F0F2F5;
+    --surface: #FFFFFF;
+    --surface-2: #F7F8FA;
+    --border: #E1E4E8;
+    --navy: #1C2B3A;
+    --navy-light: #2E4057;
+    --slate: #374151;
+    --amber: #D97706;
+    --amber-bg: #FFFBEB;
+    --amber-border: #FDE68A;
+    --red: #DC2626;
+    --red-bg: #FFF5F5;
+    --red-border: #FECACA;
+    --green: #16A34A;
+    --green-bg: #F0FDF4;
+    --green-border: #BBF7D0;
+    --blue: #1D4ED8;
+    --blue-bg: #EFF6FF;
+    --blue-border: #BFDBFE;
+    --grey-bg: #F3F4F6;
+    --grey-border: #D1D5DB;
+    --text-primary: #111827;
+    --text-secondary: #4B5563;
+    --text-muted: #9CA3AF;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text-primary); }
+
+  .chrome {
+    background: var(--navy);
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .chrome-left { display: flex; align-items: center; gap: 16px; }
+  .chrome-logo { font-size: 13px; font-weight: 600; color: #FFF; letter-spacing: 0.06em; text-transform: uppercase; }
+  .chrome-div { width: 1px; height: 20px; background: rgba(255,255,255,0.18); }
+  .chrome-mod { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .chrome-right { display: flex; align-items: center; gap: 20px; }
+  .chrome-meta { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .chrome-meta span { color: #FFF; font-weight: 500; }
+  .live-dot { width: 7px; height: 7px; background: #22C55E; border-radius: 50%; box-shadow: 0 0 6px #22C55E; animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* SHIFT TRANSITION HEADER */
+  .shift-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .shift-blocks { display: flex; align-items: center; gap: 12px; }
+  .shift-block {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 18px;
+    min-width: 160px;
+  }
+  .shift-block.outgoing { border-left: 3px solid var(--amber); }
+  .shift-block.incoming { border-left: 3px solid var(--green); }
+  .shift-label { font-size: 10px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+  .shift-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .shift-time { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .shift-arrow { font-size: 20px; color: var(--text-muted); }
+  .ai-brief-meta {
+    background: var(--navy);
+    border-radius: 6px;
+    padding: 12px 20px;
+    display: flex;
+    gap: 24px;
+  }
+  .ai-meta-item { text-align: center; }
+  .ai-meta-value { font-family: var(--mono); font-size: 16px; font-weight: 500; color: #FFF; }
+  .ai-meta-label { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  .ai-meta-div { width: 1px; background: rgba(255,255,255,0.12); }
+  .brief-badge {
+    margin-left: 16px;
+    background: #16A34A;
+    color: #FFF;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* MAIN LAYOUT */
+  .main { padding: 24px 28px; display: grid; grid-template-columns: 1fr 320px; gap: 20px; max-width: 1440px; margin: 0 auto; }
+  .left-col { display: flex; flex-direction: column; gap: 20px; }
+  .right-col { display: flex; flex-direction: column; gap: 20px; }
+
+  /* MACHINE STATUS GRID */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .card-inner { padding: 20px; }
+  .machine-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .machine-tile {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .machine-tile.running { border-top: 3px solid var(--green); }
+  .machine-tile.flagged { border-top: 3px solid var(--amber); }
+  .machine-tile.down { border-top: 3px solid var(--red); }
+  .machine-tile.idle { border-top: 3px solid var(--grey-border); }
+  .tile-id { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .tile-name { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+  .tile-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+  }
+  .tile-status.running { background: var(--green-bg); color: var(--green); }
+  .tile-status.flagged { background: var(--amber-bg); color: var(--amber); }
+  .tile-status.down { background: var(--red-bg); color: var(--red); }
+  .tile-status.idle { background: var(--grey-bg); color: var(--text-secondary); }
+  .tile-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .tile-note { font-size: 11px; color: var(--text-secondary); margin-top: 6px; line-height: 1.4; }
+  .tile-wo { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+  /* OPEN ISSUES TABLE */
+  .issues-table { width: 100%; border-collapse: collapse; }
+  .issues-table th {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0 12px 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .issues-table th:first-child { padding-left: 20px; }
+  .issues-table td {
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    vertical-align: top;
+  }
+  .issues-table td:first-child { padding-left: 20px; }
+  .issues-table tr:last-child td { border-bottom: none; }
+  .priority-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .priority-tag.high { background: var(--red-bg); color: var(--red); }
+  .priority-tag.medium { background: var(--amber-bg); color: var(--amber); }
+  .priority-tag.low { background: var(--grey-bg); color: var(--text-secondary); }
+  .issue-title { font-weight: 500; color: var(--text-primary); line-height: 1.4; }
+  .issue-note { font-size: 11px; color: var(--text-secondary); margin-top: 3px; line-height: 1.4; }
+  .age-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .age-tag.overdue { color: var(--red); font-weight: 600; }
+
+  /* WORK ORDERS */
+  .wo-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .wo-item:last-child { border-bottom: none; }
+  .wo-num { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+  .wo-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .wo-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .wo-right { text-align: right; flex-shrink: 0; margin-left: 16px; }
+  .wo-pct { font-family: var(--mono); font-size: 16px; font-weight: 500; }
+  .wo-pct.on-track { color: var(--green); }
+  .wo-pct.at-risk { color: var(--amber); }
+  .wo-pct.behind { color: var(--red); }
+  .wo-due { font-size: 11px; color: var(--text-muted); margin-top: 2px; text-align: right; }
+
+  /* CONFIRM BLOCK */
+  .confirm-card {
+    background: var(--navy);
+    border-radius: 6px;
+    padding: 20px;
+    color: #FFF;
+  }
+  .confirm-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .confirm-sub { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.5; margin-bottom: 16px; }
+  .confirm-btn {
+    width: 100%;
+    background: #16A34A;
+    color: #FFF;
+    border: none;
+    border-radius: 5px;
+    padding: 12px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+  }
+  .flag-btn {
+    width: 100%;
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 5px;
+    padding: 10px;
+    font-family: var(--sans);
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 8px;
+    letter-spacing: 0.02em;
+  }
+  .incoming-sup {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .sup-avatar {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #FFF;
+    flex-shrink: 0;
+  }
+  .sup-name { font-size: 13px; font-weight: 600; }
+  .sup-role { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 1px; }
+
+  /* KEY NUMBERS SIDEBAR */
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 11px 20px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-key { font-size: 12px; color: var(--text-secondary); }
+  .stat-val { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .stat-val.green { color: var(--green); }
+  .stat-val.amber { color: var(--amber); }
+  .stat-val.red { color: var(--red); }
+
+  .card-header-bar {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-header-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- CHROME -->
+<div class="chrome">
+  <div class="chrome-left">
+    <div class="chrome-logo">Meridian Industrial Group</div>
+    <div class="chrome-div"></div>
+    <div class="chrome-mod">Shift Handover Intelligence</div>
+  </div>
+  <div class="chrome-right">
+    <div class="chrome-meta">Facility: <span>Meridian Plant 1</span></div>
+    <div class="chrome-meta">14:00 — Day Shift Close</div>
+    <div class="live-dot"></div>
+  </div>
+</div>
+
+<!-- SHIFT HEADER -->
+<div class="shift-header">
+  <div class="shift-blocks">
+    <div class="shift-block outgoing">
+      <div class="shift-label">Outgoing Shift</div>
+      <div class="shift-name">Day Shift — J. Navarro</div>
+      <div class="shift-time">06:00 – 14:00</div>
+    </div>
+    <div class="shift-arrow">→</div>
+    <div class="shift-block incoming">
+      <div class="shift-label">Incoming Shift</div>
+      <div class="shift-name">Afternoon Shift — P. Okafor</div>
+      <div class="shift-time">14:00 – 22:00</div>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center">
+    <div class="ai-brief-meta">
+      <div class="ai-meta-item">
+        <div class="ai-meta-value">12</div>
+        <div class="ai-meta-label">machines reviewed</div>
+      </div>
+      <div class="ai-meta-div"></div>
+      <div class="ai-meta-item">
+        <div class="ai-meta-value">5</div>
+        <div class="ai-meta-label">open issues</div>
+      </div>
+      <div class="ai-meta-div"></div>
+      <div class="ai-meta-item">
+        <div class="ai-meta-value">8</div>
+        <div class="ai-meta-label">work orders</div>
+      </div>
+      <div class="ai-meta-div"></div>
+      <div class="ai-meta-item">
+        <div class="ai-meta-value">4m</div>
+        <div class="ai-meta-label">compile time</div>
+      </div>
+    </div>
+    <div class="brief-badge">✓ Brief Ready</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="left-col">
+
+    <!-- MACHINE STATUS -->
+    <div>
+      <div class="section-header">
+        <div class="section-title">Machine Status by Work Center — End of Day Shift</div>
+      </div>
+      <div class="machine-grid">
+        <div class="machine-tile running">
+          <div class="tile-id">MIG-P1-CNC-01</div>
+          <div class="tile-name">CNC Press Line 1</div>
+          <div class="tile-status running"><div class="tile-status-dot"></div>Running</div>
+          <div class="tile-note">No issues reported. On schedule. WO-4891 94% complete.</div>
+          <div class="tile-wo">WO-4891 · Bay 1</div>
+        </div>
+        <div class="machine-tile running">
+          <div class="tile-id">MIG-P1-CNC-02</div>
+          <div class="tile-name">CNC Press Line 2</div>
+          <div class="tile-status running"><div class="tile-status-dot"></div>Running</div>
+          <div class="tile-note">Running nominal. Tooling change scheduled at 16:30.</div>
+          <div class="tile-wo">WO-4897 · Bay 2</div>
+        </div>
+        <div class="machine-tile flagged">
+          <div class="tile-id">MIG-P1-CNC-03</div>
+          <div class="tile-name">CNC Press Line 3</div>
+          <div class="tile-status flagged"><div class="tile-status-dot"></div>Watch</div>
+          <div class="tile-note">Vibration reading elevated since 11:40. No fault triggered. Monitoring.</div>
+          <div class="tile-wo">WO-4902 · Bay 3</div>
+        </div>
+        <div class="machine-tile running">
+          <div class="tile-id">MIG-P1-WELD-01</div>
+          <div class="tile-name">Weld Station A</div>
+          <div class="tile-status running"><div class="tile-status-dot"></div>Running</div>
+          <div class="tile-note">Running on plan. No carry-forward items.</div>
+          <div class="tile-wo">WO-4888 · Weld Bay</div>
+        </div>
+        <div class="machine-tile down">
+          <div class="tile-id">MIG-P1-WELD-02</div>
+          <div class="tile-name">Weld Station B</div>
+          <div class="tile-status down"><div class="tile-status-dot"></div>Down</div>
+          <div class="tile-note">Wire feed fault at 09:15. Maintenance called. Parts on order — ETA tomorrow.</div>
+          <div class="tile-wo">WO-4899 · Weld Bay</div>
+        </div>
+        <div class="machine-tile running">
+          <div class="tile-id">MIG-P1-ASMBLY-01</div>
+          <div class="tile-name">Assembly Line 1</div>
+          <div class="tile-status running"><div class="tile-status-dot"></div>Running</div>
+          <div class="tile-note">Pace slightly behind. Supervisor flagged at 13:00. Monitor first hour.</div>
+          <div class="tile-wo">WO-4885 · Assembly</div>
+        </div>
+        <div class="machine-tile idle">
+          <div class="tile-id">MIG-P1-ASMBLY-02</div>
+          <div class="tile-name">Assembly Line 2</div>
+          <div class="tile-status idle"><div class="tile-status-dot"></div>Idle</div>
+          <div class="tile-note">Scheduled idle. Next run starts 06:00 tomorrow. Changeover complete.</div>
+          <div class="tile-wo">No active WO</div>
+        </div>
+        <div class="machine-tile running">
+          <div class="tile-id">MIG-P1-GRIND-01</div>
+          <div class="tile-name">Grinding Center 1</div>
+          <div class="tile-status running"><div class="tile-status-dot"></div>Running</div>
+          <div class="tile-note">Running on plan. Wheel dress due in approx 3 hours.</div>
+          <div class="tile-wo">WO-4894 · Finish</div>
+        </div>
+        <div class="machine-tile flagged">
+          <div class="tile-id">MIG-P1-GRIND-02</div>
+          <div class="tile-name">Grinding Center 2</div>
+          <div class="tile-status flagged"><div class="tile-status-dot"></div>Watch</div>
+          <div class="tile-note">Coolant level low. Topped up at 12:45. Monitor recurrence.</div>
+          <div class="tile-wo">WO-4903 · Finish</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPEN ISSUES -->
+    <div class="card">
+      <div class="card-header-bar">
+        <div class="card-header-title">Open Issues — Carry Forward to Afternoon Shift</div>
+        <div style="font-size:11px; color:var(--text-muted)">Ranked by priority</div>
+      </div>
+      <table class="issues-table">
+        <thead>
+          <tr>
+            <th>Priority</th>
+            <th>Issue</th>
+            <th>Asset</th>
+            <th>Age</th>
+            <th>Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="priority-tag high">High</span></td>
+            <td>
+              <div class="issue-title">Weld Station B — Wire Feed Fault</div>
+              <div class="issue-note">Parts on order (ETA tomorrow AM). Station remains offline. WO-4899 blocked until resolved.</div>
+            </td>
+            <td style="font-family:var(--mono); font-size:11px; color:var(--text-secondary); white-space:nowrap">WELD-02</td>
+            <td><div class="age-tag overdue">4h 45m</div></td>
+            <td style="font-size:12px; color:var(--text-secondary)">D. Morales</td>
+          </tr>
+          <tr>
+            <td><span class="priority-tag high">High</span></td>
+            <td>
+              <div class="issue-title">CNC Line 3 — Elevated Vibration</div>
+              <div class="issue-note">No fault code yet. Recommend inspection if vibration persists past 15:30. Bearing history reviewed — similar pattern preceded Sep 2024 failure.</div>
+            </td>
+            <td style="font-family:var(--mono); font-size:11px; color:var(--text-secondary); white-space:nowrap">CNC-03</td>
+            <td><div class="age-tag overdue">2h 20m</div></td>
+            <td style="font-size:12px; color:var(--text-secondary)">Unassigned</td>
+          </tr>
+          <tr>
+            <td><span class="priority-tag medium">Medium</span></td>
+            <td>
+              <div class="issue-title">Assembly Line 1 — Pace Below Plan</div>
+              <div class="issue-note">Running at 91% of target. Supervisor flagged. No mechanical fault. Monitor pace at 15:00 check-in.</div>
+            </td>
+            <td style="font-family:var(--mono); font-size:11px; color:var(--text-secondary); white-space:nowrap">ASMBLY-01</td>
+            <td><div class="age-tag">1h 00m</div></td>
+            <td style="font-size:12px; color:var(--text-secondary)">P. Okafor</td>
+          </tr>
+          <tr>
+            <td><span class="priority-tag medium">Medium</span></td>
+            <td>
+              <div class="issue-title">Grinding Center 2 — Coolant Recurrence</div>
+              <div class="issue-note">Third low-coolant event this week. May indicate a slow leak. Recommend inspection during first break.</div>
+            </td>
+            <td style="font-family:var(--mono); font-size:11px; color:var(--text-secondary); white-space:nowrap">GRIND-02</td>
+            <td><div class="age-tag">1h 15m</div></td>
+            <td style="font-size:12px; color:var(--text-secondary)">R. Thompson</td>
+          </tr>
+          <tr>
+            <td><span class="priority-tag low">Low</span></td>
+            <td>
+              <div class="issue-title">CNC Line 2 — Tooling Change Due at 16:30</div>
+              <div class="issue-note">Standard changeover. Tools staged in Bay 2 locker. Estimated 20-minute interruption. No operator required before 16:15.</div>
+            </td>
+            <td style="font-family:var(--mono); font-size:11px; color:var(--text-secondary); white-space:nowrap">CNC-02</td>
+            <td><div class="age-tag">Scheduled</div></td>
+            <td style="font-size:12px; color:var(--text-secondary)">Auto-scheduled</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- WORK ORDERS -->
+    <div class="card">
+      <div class="card-header-bar">
+        <div class="card-header-title">Work Orders — Active at Shift Change</div>
+        <div style="font-size:11px; color:var(--text-muted)">8 open</div>
+      </div>
+      <div class="wo-item">
+        <div>
+          <div class="wo-num">WO-4891</div>
+          <div class="wo-title">Bracket Sub-Assembly — Order #ORD-8812</div>
+          <div class="wo-sub">CNC Line 1 · Qty 240 of 255 complete</div>
+        </div>
+        <div class="wo-right">
+          <div class="wo-pct on-track">94%</div>
+          <div class="wo-due">Due: Today 17:00</div>
+        </div>
+      </div>
+      <div class="wo-item">
+        <div>
+          <div class="wo-num">WO-4894</div>
+          <div class="wo-title">Precision Ground Shaft — Order #ORD-8797</div>
+          <div class="wo-sub">Grinding Center 1 · Qty 80 of 120 complete</div>
+        </div>
+        <div class="wo-right">
+          <div class="wo-pct on-track">67%</div>
+          <div class="wo-due">Due: Tomorrow 08:00</div>
+        </div>
+      </div>
+      <div class="wo-item">
+        <div>
+          <div class="wo-num">WO-4897</div>
+          <div class="wo-title">Formed Panel Run — Order #ORD-8820</div>
+          <div class="wo-sub">CNC Line 2 · Qty 110 of 200 complete</div>
+        </div>
+        <div class="wo-right">
+          <div class="wo-pct at-risk">55%</div>
+          <div class="wo-due">Due: Today 22:00</div>
+        </div>
+      </div>
+      <div class="wo-item">
+        <div>
+          <div class="wo-num">WO-4899</div>
+          <div class="wo-title">Weld Frame Assembly — Order #ORD-8831</div>
+          <div class="wo-sub">Weld Station B · BLOCKED — Station offline</div>
+        </div>
+        <div class="wo-right">
+          <div class="wo-pct behind">0%</div>
+          <div class="wo-due" style="color:var(--red)">Due: Tomorrow 10:00</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="right-col">
+
+    <!-- KEY NUMBERS -->
+    <div class="card">
+      <div class="card-header-bar">
+        <div class="card-header-title">Day Shift Summary</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Machines Running</div>
+        <div class="stat-val green">7 / 9</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Machines Down</div>
+        <div class="stat-val red">1</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Watch Status</div>
+        <div class="stat-val amber">2</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Work Orders On Track</div>
+        <div class="stat-val green">5 / 8</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Work Orders At Risk</div>
+        <div class="stat-val amber">2 / 8</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Work Orders Blocked</div>
+        <div class="stat-val red">1 / 8</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Unplanned Downtime Events</div>
+        <div class="stat-val">2</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-key">Total Downtime (Day Shift)</div>
+        <div class="stat-val amber">4h 45m</div>
+      </div>
+    </div>
+
+    <!-- CONFIRM BLOCK -->
+    <div class="confirm-card">
+      <div class="incoming-sup">
+        <div class="sup-avatar">PO</div>
+        <div>
+          <div class="sup-name">P. Okafor</div>
+          <div class="sup-role">Afternoon Shift Supervisor</div>
+        </div>
+      </div>
+      <div class="confirm-title">Brief Review Required</div>
+      <div class="confirm-sub">Review the 5 open issues and 8 active work orders above. Confirm receipt to begin the afternoon shift on record.</div>
+      <button class="confirm-btn">Reviewed and Accepted</button>
+      <button class="flag-btn">Flag an Issue Before Accepting</button>
+    </div>
+
+    <!-- AI NOTE -->
+    <div style="background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px; padding:16px;">
+      <div style="font-size:11px; font-weight:600; color:#D97706; letter-spacing:0.07em; text-transform:uppercase; margin-bottom:8px;">AI Recommendation</div>
+      <div style="font-size:12px; color:#374151; line-height:1.6">CNC Line 3 elevated vibration pattern matches the signature recorded 3 days before the Sep 2024 spindle failure. Recommend P. Okafor inspect at 15:30 if no improvement. Do not wait for a fault code to escalate.</div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
