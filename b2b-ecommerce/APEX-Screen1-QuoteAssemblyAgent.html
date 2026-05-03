@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex Supply Co. | Quote Assembly Agent</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #F0F4F8; color: #1E293B; font-size: 13px; }
+
+  .topnav { background: #0F2544; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 52px; }
+  .topnav-brand { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.2px; }
+  .topnav-brand span { color: #38BDF8; }
+  .topnav-center { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.07); padding: 5px 14px; border-radius: 20px; }
+  .topnav-center svg { opacity: 0.6; }
+  .topnav-center span { color: #94A3B8; font-size: 11px; }
+  .topnav-right { display: flex; align-items: center; gap: 14px; }
+  .topnav-badge { background: #0EA5E9; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
+  .topnav-user { color: #94A3B8; font-size: 11px; }
+  .live-dot { width: 7px; height: 7px; background: #22C55E; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .subnav { background: #fff; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; padding: 0 20px; height: 40px; gap: 2px; }
+  .subnav-tab { padding: 0 14px; height: 40px; display: flex; align-items: center; font-size: 11px; font-weight: 600; color: #64748B; cursor: pointer; border-bottom: 2px solid transparent; }
+  .subnav-tab.active { color: #0284C7; border-bottom-color: #0284C7; }
+  .subnav-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .btn { padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: #0284C7; color: #fff; }
+  .btn-outline { background: #fff; border: 1px solid #CBD5E1; color: #475569; }
+
+  .main { padding: 16px 20px; }
+
+  .kpi-strip { display: flex; gap: 10px; margin-bottom: 14px; }
+  .kpi-card { flex: 1; background: #fff; border-radius: 8px; padding: 14px 16px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .kpi-label { font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px; }
+  .kpi-value { font-size: 28px; font-weight: 700; color: #0F2544; line-height: 1; }
+  .kpi-sub { font-size: 10px; color: #94A3B8; margin-top: 4px; }
+  .kpi-delta { font-size: 10px; font-weight: 700; margin-top: 5px; }
+  .delta-green { color: #16A34A; }
+  .delta-red { color: #DC2626; }
+  .delta-blue { color: #0284C7; }
+
+  .row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .col-7 { flex: 7; }
+  .col-5 { flex: 5; }
+  .col-4 { flex: 4; }
+  .col-6 { flex: 6; }
+
+  .panel { background: #fff; border-radius: 8px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+  .panel-header { padding: 11px 16px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 12px; font-weight: 700; color: #0F2544; }
+  .panel-sub { font-size: 10px; color: #94A3B8; margin-top: 1px; }
+  .panel-action { font-size: 10px; font-weight: 600; color: #0284C7; cursor: pointer; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #F8FAFC; font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.4px; padding: 7px 12px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+  td { padding: 9px 12px; border-bottom: 1px solid #F8FAFC; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F8FCFF; }
+
+  .acct-name { font-weight: 600; font-size: 12px; color: #0F2544; }
+  .acct-tier { font-size: 10px; color: #94A3B8; margin-top: 1px; }
+
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+  .pill-green { background: #DCFCE7; color: #15803D; }
+  .pill-amber { background: #FEF3C7; color: #B45309; }
+  .pill-blue { background: #DBEAFE; color: #1D4ED8; }
+  .pill-slate { background: #F1F5F9; color: #475569; }
+  .pill-purple { background: #EDE9FE; color: #7C3AED; }
+
+  .agent-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+  .agent-dot { width: 5px; height: 5px; background: #1D4ED8; border-radius: 50%; }
+
+  .time-bar-wrap { width: 80px; }
+  .time-bar { height: 5px; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-top: 3px; }
+  .time-fill { height: 100%; border-radius: 3px; }
+  .fill-green { background: #16A34A; }
+  .fill-blue { background: #0284C7; }
+  .fill-amber { background: #F59E0B; }
+  .time-val { font-size: 11px; font-weight: 700; }
+
+  .mini-stats { display: flex; flex-direction: column; gap: 0; }
+  .stat-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px; border-bottom: 1px solid #F1F5F9; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { font-size: 11px; color: #475569; }
+  .stat-val { font-size: 13px; font-weight: 700; color: #0F2544; }
+  .stat-val-green { color: #16A34A; }
+  .stat-val-blue { color: #0284C7; }
+
+  .activity-list { padding: 0; }
+  .activity-item { display: flex; gap: 10px; align-items: flex-start; padding: 9px 16px; border-bottom: 1px solid #F8FAFC; }
+  .activity-item:last-child { border-bottom: none; }
+  .act-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+  .act-blue { background: #EFF6FF; }
+  .act-green { background: #F0FDF4; }
+  .act-amber { background: #FFFBEB; }
+  .act-body { flex: 1; }
+  .act-title { font-size: 11px; font-weight: 600; color: #1E293B; }
+  .act-sub { font-size: 10px; color: #94A3B8; margin-top: 2px; }
+  .act-time { font-size: 10px; color: #CBD5E1; flex-shrink: 0; margin-top: 2px; }
+
+  .quota-wrap { padding: 14px 16px; }
+  .quota-label { font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .quota-main { font-size: 22px; font-weight: 700; color: #0F2544; }
+  .quota-sub { font-size: 10px; color: #94A3B8; }
+  .quota-bar { height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden; margin: 10px 0 4px; }
+  .quota-fill { height: 100%; background: linear-gradient(90deg, #0EA5E9, #0284C7); border-radius: 4px; }
+  .quota-legend { display: flex; justify-content: space-between; }
+  .quota-leg-item { font-size: 10px; }
+  .leg-blue { color: #0284C7; font-weight: 600; }
+  .leg-gray { color: #94A3B8; }
+
+  .savings-block { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .sav-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #F1F5F9; }
+  .sav-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .sav-label { font-size: 11px; color: #64748B; }
+  .sav-before { font-size: 12px; font-weight: 600; color: #DC2626; text-decoration: line-through; }
+  .sav-after { font-size: 12px; font-weight: 700; color: #15803D; }
+  .sav-arrow { font-size: 11px; color: #94A3B8; margin: 0 6px; }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-brand">Apex Supply Co. <span>| Quote Agent</span></div>
+  <div class="topnav-center">
+    <span><span class="live-dot"></span>Agent Active — 14 quotes processed today</span>
+  </div>
+  <div class="topnav-right">
+    <span class="topnav-badge">SALES OPS</span>
+    <span class="topnav-user">Sarah Kim, VP Customer Operations</span>
+  </div>
+</div>
+
+<div class="subnav">
+  <div class="subnav-tab active">Quote Queue</div>
+  <div class="subnav-tab">Active Accounts</div>
+  <div class="subnav-tab">Agent Log</div>
+  <div class="subnav-tab">Pricing Rules</div>
+  <div class="subnav-right">
+    <button class="btn btn-outline">Export Report</button>
+    <button class="btn btn-primary">New RFQ</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-label">Avg. Quote Time — Agent</div>
+      <div class="kpi-value">8<span style="font-size:14px;color:#64748B;">m</span></div>
+      <div class="kpi-sub">Down from 2.4 hrs manual average</div>
+      <div class="kpi-delta delta-green">▲ 94% faster this week</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Quotes Processed Today</div>
+      <div class="kpi-value">14</div>
+      <div class="kpi-sub">3 pending rep review</div>
+      <div class="kpi-delta delta-blue">11 sent to accounts</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Rep Time Saved — This Week</div>
+      <div class="kpi-value">73<span style="font-size:14px;color:#64748B;">h</span></div>
+      <div class="kpi-sub">vs. 61h prior week</div>
+      <div class="kpi-delta delta-green">▲ 19% week-over-week</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Pricing Accuracy</div>
+      <div class="kpi-value">99.4<span style="font-size:14px;color:#64748B;">%</span></div>
+      <div class="kpi-sub">Contract rate match vs. ERP</div>
+      <div class="kpi-delta delta-green">0 pricing disputes this month</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Quote-to-Order Rate</div>
+      <div class="kpi-value">68<span style="font-size:14px;color:#64748B;">%</span></div>
+      <div class="kpi-sub">Up from 54% pre-deployment</div>
+      <div class="kpi-delta delta-green">▲ +14 pts since May</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Quote Queue Table -->
+    <div class="col-7">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Active Quote Queue</div>
+            <div class="panel-sub">All open RFQs — agent assembled drafts highlighted</div>
+          </div>
+          <span class="panel-action">View all</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>RFQ Items</th>
+              <th>Assembled By</th>
+              <th>Draft Time</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="acct-name">Halloran Brothers Supply</div>
+                <div class="acct-tier">Tier A — Contract Account</div>
+              </td>
+              <td><strong>24 SKUs</strong><br><span style="font-size:10px;color:#94A3B8;">3 custom pricing tiers</span></td>
+              <td><span class="agent-badge"><span class="agent-dot"></span>Quote Agent</span></td>
+              <td>
+                <div class="time-val" style="color:#15803D;">7m 42s</div>
+                <div class="time-bar"><div class="time-fill fill-green" style="width:12%"></div></div>
+              </td>
+              <td><span class="pill pill-amber">Pending Review</span></td>
+              <td><span style="font-size:11px;color:#0284C7;cursor:pointer;font-weight:600;">Review →</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="acct-name">Rexford Industrial LLC</div>
+                <div class="acct-tier">Tier B — Volume Discount</div>
+              </td>
+              <td><strong>11 SKUs</strong><br><span style="font-size:10px;color:#94A3B8;">Standard catalog pricing</span></td>
+              <td><span class="agent-badge"><span class="agent-dot"></span>Quote Agent</span></td>
+              <td>
+                <div class="time-val" style="color:#15803D;">4m 18s</div>
+                <div class="time-bar"><div class="time-fill fill-green" style="width:7%"></div></div>
+              </td>
+              <td><span class="pill pill-green">Sent to Account</span></td>
+              <td><span style="font-size:11px;color:#94A3B8;cursor:pointer;">View</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="acct-name">Pacific Basin Distributors</div>
+                <div class="acct-tier">Tier A — Contract Account</div>
+              </td>
+              <td><strong>38 SKUs</strong><br><span style="font-size:10px;color:#94A3B8;">Mixed: contract + spot pricing</span></td>
+              <td><span class="agent-badge"><span class="agent-dot"></span>Quote Agent</span></td>
+              <td>
+                <div class="time-val" style="color:#15803D;">11m 05s</div>
+                <div class="time-bar"><div class="time-fill fill-blue" style="width:18%"></div></div>
+              </td>
+              <td><span class="pill pill-amber">Pending Review</span></td>
+              <td><span style="font-size:11px;color:#0284C7;cursor:pointer;font-weight:600;">Review →</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="acct-name">Kenworth Hardware Group</div>
+                <div class="acct-tier">Tier C — Standard Account</div>
+              </td>
+              <td><strong>7 SKUs</strong><br><span style="font-size:10px;color:#94A3B8;">Standard catalog pricing</span></td>
+              <td><span class="agent-badge"><span class="agent-dot"></span>Quote Agent</span></td>
+              <td>
+                <div class="time-val" style="color:#15803D;">3m 51s</div>
+                <div class="time-bar"><div class="time-fill fill-green" style="width:6%"></div></div>
+              </td>
+              <td><span class="pill pill-green">Sent to Account</span></td>
+              <td><span style="font-size:11px;color:#94A3B8;cursor:pointer;">View</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="acct-name">Dorado Industrial Partners</div>
+                <div class="acct-tier">Tier A — Contract Account</div>
+              </td>
+              <td><strong>52 SKUs</strong><br><span style="font-size:10px;color:#94A3B8;">Needs exception approval</span></td>
+              <td><span class="agent-badge"><span class="agent-dot"></span>Quote Agent</span></td>
+              <td>
+                <div class="time-val" style="color:#F59E0B;">13m 22s</div>
+                <div class="time-bar"><div class="time-fill fill-amber" style="width:22%"></div></div>
+              </td>
+              <td><span class="pill pill-amber">Flagged — Exception</span></td>
+              <td><span style="font-size:11px;color:#0284C7;cursor:pointer;font-weight:600;">Resolve →</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="acct-name">Morrow Supply Chain Inc.</div>
+                <div class="acct-tier">Tier B — Volume Discount</div>
+              </td>
+              <td><strong>19 SKUs</strong><br><span style="font-size:10px;color:#94A3B8;">Reorder — same as Quote #4411</span></td>
+              <td><span class="agent-badge"><span class="agent-dot"></span>Quote Agent</span></td>
+              <td>
+                <div class="time-val" style="color:#15803D;">2m 09s</div>
+                <div class="time-bar"><div class="time-fill fill-green" style="width:4%"></div></div>
+              </td>
+              <td><span class="pill pill-green">Sent to Account</span></td>
+              <td><span style="font-size:11px;color:#94A3B8;cursor:pointer;">View</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-5" style="display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Time savings comparison -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Time per Quote — Before vs. After</div>
+        </div>
+        <div class="savings-block">
+          <div class="sav-row">
+            <div class="sav-label">Standard quote (1–15 SKUs)</div>
+            <div>
+              <span class="sav-before">45 min</span>
+              <span class="sav-arrow">→</span>
+              <span class="sav-after">4–6 min</span>
+            </div>
+          </div>
+          <div class="sav-row">
+            <div class="sav-label">Complex quote (15–30 SKUs)</div>
+            <div>
+              <span class="sav-before">2.5 hrs</span>
+              <span class="sav-arrow">→</span>
+              <span class="sav-after">8–12 min</span>
+            </div>
+          </div>
+          <div class="sav-row">
+            <div class="sav-label">Multi-tier contract quote (30+ SKUs)</div>
+            <div>
+              <span class="sav-before">4 hrs</span>
+              <span class="sav-arrow">→</span>
+              <span class="sav-after">12–18 min</span>
+            </div>
+          </div>
+          <div class="sav-row">
+            <div class="sav-label">Rep review time per draft</div>
+            <div>
+              <span class="sav-after">~15 min</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly volume -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Weekly Quote Volume — Last 4 Weeks</div>
+        </div>
+        <div class="mini-stats">
+          <div class="stat-row">
+            <span class="stat-label">Week of Apr 28</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:100px;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;"><div style="width:92%;height:100%;background:#0284C7;border-radius:3px;"></div></div>
+              <span class="stat-val stat-val-blue">46 quotes</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Week of Apr 21</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:100px;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;"><div style="width:78%;height:100%;background:#0284C7;border-radius:3px;"></div></div>
+              <span class="stat-val stat-val-blue">39 quotes</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Week of Apr 14</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:100px;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;"><div style="width:70%;height:100%;background:#0284C7;border-radius:3px;"></div></div>
+              <span class="stat-val stat-val-blue">35 quotes</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Week of Apr 7</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:100px;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;"><div style="width:62%;height:100%;background:#94A3B8;border-radius:3px;"></div></div>
+              <span class="stat-val" style="color:#94A3B8;">31 quotes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent activity feed -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Agent Activity — Last 30 Minutes</div>
+        </div>
+        <div class="activity-list">
+          <div class="activity-item">
+            <div class="act-icon act-green">✓</div>
+            <div class="act-body">
+              <div class="act-title">Quote assembled — Morrow Supply Chain</div>
+              <div class="act-sub">19 SKUs · Tier B pricing · Matched prior order #4411</div>
+            </div>
+            <div class="act-time">2m ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="act-icon act-amber">⚑</div>
+            <div class="act-body">
+              <div class="act-title">Exception flagged — Dorado Industrial</div>
+              <div class="act-sub">2 SKUs outside contract tier — routed to Sarah Kim</div>
+            </div>
+            <div class="act-time">9m ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="act-icon act-green">✓</div>
+            <div class="act-body">
+              <div class="act-title">Quote sent — Kenworth Hardware Group</div>
+              <div class="act-sub">7 SKUs · Standard pricing · Sent via email</div>
+            </div>
+            <div class="act-time">17m ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="act-icon act-blue">↗</div>
+            <div class="act-body">
+              <div class="act-title">Reorder alert — Pacific Basin Distributors</div>
+              <div class="act-sub">Buying pattern signals reorder due in 6 days</div>
+            </div>
+            <div class="act-time">24m ago</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <div style="font-size:10px;color:#94A3B8;margin-top:4px;">
+    All quote times shown are agent draft assembly only. Rep review adds approximately 15 minutes per quote. Pricing accuracy benchmarked against live ERP contract data. Quote-to-order rate includes all quotes issued in trailing 90 days.
+  </div>
+
+</div>
+</body>
+</html>

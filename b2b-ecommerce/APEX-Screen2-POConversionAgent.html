@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex Supply Co. | PO Conversion Agent</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #F0F4F8; color: #1E293B; font-size: 13px; }
+
+  .topnav { background: #0F2544; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 52px; }
+  .topnav-brand { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.2px; }
+  .topnav-brand span { color: #38BDF8; }
+  .topnav-center { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.07); padding: 5px 14px; border-radius: 20px; }
+  .topnav-center span { color: #94A3B8; font-size: 11px; }
+  .live-dot { width: 7px; height: 7px; background: #22C55E; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .topnav-right { display: flex; align-items: center; gap: 14px; }
+  .topnav-badge { background: #0EA5E9; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; }
+  .topnav-user { color: #94A3B8; font-size: 11px; }
+
+  .subnav { background: #fff; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; padding: 0 20px; height: 40px; gap: 2px; }
+  .subnav-tab { padding: 0 14px; height: 40px; display: flex; align-items: center; font-size: 11px; font-weight: 600; color: #64748B; cursor: pointer; border-bottom: 2px solid transparent; }
+  .subnav-tab.active { color: #0284C7; border-bottom-color: #0284C7; }
+  .subnav-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .btn { padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: #0284C7; color: #fff; }
+  .btn-outline { background: #fff; border: 1px solid #CBD5E1; color: #475569; }
+
+  .main { padding: 16px 20px; }
+
+  .kpi-strip { display: flex; gap: 10px; margin-bottom: 14px; }
+  .kpi-card { flex: 1; background: #fff; border-radius: 8px; padding: 14px 16px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .kpi-label { font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px; }
+  .kpi-value { font-size: 28px; font-weight: 700; color: #0F2544; line-height: 1; }
+  .kpi-sub { font-size: 10px; color: #94A3B8; margin-top: 4px; }
+  .kpi-delta { font-size: 10px; font-weight: 700; margin-top: 5px; }
+  .delta-green { color: #16A34A; }
+  .delta-red { color: #DC2626; }
+  .delta-blue { color: #0284C7; }
+
+  .row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .col-8 { flex: 8; }
+  .col-4 { flex: 4; }
+
+  .panel { background: #fff; border-radius: 8px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+  .panel-header { padding: 11px 16px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 12px; font-weight: 700; color: #0F2544; }
+  .panel-sub { font-size: 10px; color: #94A3B8; margin-top: 1px; }
+  .panel-action { font-size: 10px; font-weight: 600; color: #0284C7; cursor: pointer; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #F8FAFC; font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.4px; padding: 7px 12px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+  td { padding: 9px 12px; border-bottom: 1px solid #F8FAFC; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F8FCFF; }
+
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+  .pill-green { background: #DCFCE7; color: #15803D; }
+  .pill-amber { background: #FEF3C7; color: #B45309; }
+  .pill-red { background: #FEE2E2; color: #B91C1C; }
+  .pill-blue { background: #DBEAFE; color: #1D4ED8; }
+  .pill-slate { background: #F1F5F9; color: #475569; }
+
+  .agent-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+  .agent-dot { width: 5px; height: 5px; background: #1D4ED8; border-radius: 50%; }
+
+  /* Line item validation table */
+  .line-table { width: 100%; border-collapse: collapse; }
+  .line-table th { background: #F8FAFC; font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.4px; padding: 7px 10px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+  .line-table td { padding: 8px 10px; border-bottom: 1px solid #F8FAFC; font-size: 11px; vertical-align: middle; }
+  .line-table tr:last-child td { border-bottom: none; }
+  .check { color: #16A34A; font-weight: 700; font-size: 13px; }
+  .warn { color: #D97706; font-weight: 700; font-size: 13px; }
+  .sku { font-family: 'Courier New', monospace; font-size: 11px; background: #F1F5F9; padding: 1px 5px; border-radius: 3px; color: #334155; }
+
+  /* Error rate chart placeholder */
+  .rate-display { padding: 16px; }
+  .rate-compare { display: flex; gap: 16px; align-items: flex-end; margin-bottom: 14px; }
+  .rate-bar-wrap { flex: 1; text-align: center; }
+  .rate-bar-outer { height: 80px; background: #F1F5F9; border-radius: 6px; display: flex; align-items: flex-end; overflow: hidden; }
+  .rate-bar-inner { width: 100%; border-radius: 6px 6px 0 0; }
+  .bar-before { background: #FCA5A5; }
+  .bar-after { background: #86EFAC; }
+  .rate-label { font-size: 10px; color: #64748B; margin-top: 5px; font-weight: 600; }
+  .rate-val { font-size: 16px; font-weight: 700; margin-top: 4px; }
+  .rate-separator { width: 1px; background: #E2E8F0; height: 80px; }
+  .rate-note { font-size: 10px; color: #94A3B8; text-align: center; border-top: 1px solid #F1F5F9; padding-top: 10px; }
+
+  .mini-stats { display: flex; flex-direction: column; }
+  .stat-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px; border-bottom: 1px solid #F1F5F9; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { font-size: 11px; color: #475569; }
+  .stat-val { font-size: 13px; font-weight: 700; color: #0F2544; }
+  .stat-val-green { color: #16A34A; }
+  .stat-val-blue { color: #0284C7; }
+  .stat-val-red { color: #DC2626; }
+
+  .exception-list { padding: 0; }
+  .exc-item { display: flex; gap: 10px; align-items: flex-start; padding: 9px 16px; border-bottom: 1px solid #F8FAFC; }
+  .exc-item:last-child { border-bottom: none; }
+  .exc-icon { width: 24px; height: 24px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+  .exc-amber { background: #FFFBEB; border: 1px solid #FDE68A; }
+  .exc-red { background: #FEF2F2; border: 1px solid #FECACA; }
+  .exc-body { flex: 1; }
+  .exc-title { font-size: 11px; font-weight: 600; color: #1E293B; }
+  .exc-sub { font-size: 10px; color: #94A3B8; margin-top: 2px; }
+  .exc-action { font-size: 10px; font-weight: 600; color: #0284C7; cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-brand">Apex Supply Co. <span>| PO Conversion Agent</span></div>
+  <div class="topnav-center">
+    <span><span class="live-dot"></span>Agent Active — 31 orders processed today · 2 exceptions flagged</span>
+  </div>
+  <div class="topnav-right">
+    <span class="topnav-badge">ORDER MGMT</span>
+    <span class="topnav-user">Sarah Kim, VP Customer Operations</span>
+  </div>
+</div>
+
+<div class="subnav">
+  <div class="subnav-tab active">Order Queue</div>
+  <div class="subnav-tab">Exception Log</div>
+  <div class="subnav-tab">ERP Postings</div>
+  <div class="subnav-tab">Accuracy Report</div>
+  <div class="subnav-right">
+    <button class="btn btn-outline">Download Log</button>
+    <button class="btn btn-primary">Manual Entry</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-label">Avg. Processing Time</div>
+      <div class="kpi-value">1<span style="font-size:14px;color:#64748B;">m 48s</span></div>
+      <div class="kpi-sub">Down from 20 min manual average</div>
+      <div class="kpi-delta delta-green">▲ 91% faster per order</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Orders Processed Today</div>
+      <div class="kpi-value">31</div>
+      <div class="kpi-sub">29 posted to ERP · 2 exceptions</div>
+      <div class="kpi-delta delta-blue">0 manual re-entries required</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Field Error Rate</div>
+      <div class="kpi-value">0.4<span style="font-size:14px;color:#64748B;">%</span></div>
+      <div class="kpi-sub">Down from 3–5% manual average</div>
+      <div class="kpi-delta delta-green">▲ Error rate -89% vs. manual</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Contract Price Match</div>
+      <div class="kpi-value">100<span style="font-size:14px;color:#64748B;">%</span></div>
+      <div class="kpi-sub">All orders validated against ERP rates</div>
+      <div class="kpi-delta delta-green">0 pricing disputes this week</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Staff Hours Reallocated</div>
+      <div class="kpi-value">48<span style="font-size:14px;color:#64748B;">h</span></div>
+      <div class="kpi-sub">This month · from order entry</div>
+      <div class="kpi-delta delta-blue">Redirected to exception handling</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Main order queue -->
+    <div class="col-8">
+      <div class="panel" style="margin-bottom:12px;">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Order Processing Queue — Today</div>
+            <div class="panel-sub">Emailed POs and PDF attachments parsed and validated against catalog and contract pricing</div>
+          </div>
+          <span class="panel-action">View all 31</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>PO Number</th>
+              <th>Source</th>
+              <th>Lines</th>
+              <th>Order Value</th>
+              <th>Validation</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div style="font-weight:600;font-size:12px;color:#0F2544;">Halloran Brothers Supply</div>
+                <div style="font-size:10px;color:#94A3B8;">Tier A — Contract</div>
+              </td>
+              <td><span class="sku">HBS-20440</span></td>
+              <td><span class="pill pill-blue">PDF Email</span></td>
+              <td>12 lines</td>
+              <td><strong>$18,420</strong></td>
+              <td><span style="color:#16A34A;font-size:12px;font-weight:700;">✓ All clear</span></td>
+              <td><span class="pill pill-green">Posted to ERP</span></td>
+              <td><span style="font-size:10px;color:#94A3B8;cursor:pointer;">View</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:600;font-size:12px;color:#0F2544;">Rexford Industrial LLC</div>
+                <div style="font-size:10px;color:#94A3B8;">Tier B — Volume</div>
+              </td>
+              <td><span class="sku">RIL-88203</span></td>
+              <td><span class="pill pill-blue">PDF Email</span></td>
+              <td>6 lines</td>
+              <td><strong>$7,915</strong></td>
+              <td><span style="color:#16A34A;font-size:12px;font-weight:700;">✓ All clear</span></td>
+              <td><span class="pill pill-green">Posted to ERP</span></td>
+              <td><span style="font-size:10px;color:#94A3B8;cursor:pointer;">View</span></td>
+            </tr>
+            <tr style="background:#FFFBEB;">
+              <td>
+                <div style="font-weight:600;font-size:12px;color:#0F2544;">Dorado Industrial Partners</div>
+                <div style="font-size:10px;color:#94A3B8;">Tier A — Contract</div>
+              </td>
+              <td><span class="sku">DIP-31107</span></td>
+              <td><span class="pill pill-slate">Plain Email</span></td>
+              <td>9 lines</td>
+              <td><strong>$34,650</strong></td>
+              <td><span style="color:#D97706;font-size:12px;font-weight:700;">⚑ 1 price exception</span></td>
+              <td><span class="pill pill-amber">Held — Review</span></td>
+              <td><span style="font-size:10px;color:#0284C7;cursor:pointer;font-weight:600;">Resolve →</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:600;font-size:12px;color:#0F2544;">Pacific Basin Distributors</div>
+                <div style="font-size:10px;color:#94A3B8;">Tier A — Contract</div>
+              </td>
+              <td><span class="sku">PBD-10922</span></td>
+              <td><span class="pill pill-blue">PDF Email</span></td>
+              <td>21 lines</td>
+              <td><strong>$52,180</strong></td>
+              <td><span style="color:#16A34A;font-size:12px;font-weight:700;">✓ All clear</span></td>
+              <td><span class="pill pill-green">Posted to ERP</span></td>
+              <td><span style="font-size:10px;color:#94A3B8;cursor:pointer;">View</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:600;font-size:12px;color:#0F2544;">Kenworth Hardware Group</div>
+                <div style="font-size:10px;color:#94A3B8;">Tier C — Standard</div>
+              </td>
+              <td><span class="sku">KHG-44801</span></td>
+              <td><span class="pill pill-blue">PDF Email</span></td>
+              <td>4 lines</td>
+              <td><strong>$3,290</strong></td>
+              <td><span style="color:#16A34A;font-size:12px;font-weight:700;">✓ All clear</span></td>
+              <td><span class="pill pill-green">Posted to ERP</span></td>
+              <td><span style="font-size:10px;color:#94A3B8;cursor:pointer;">View</span></td>
+            </tr>
+            <tr style="background:#FFF5F5;">
+              <td>
+                <div style="font-weight:600;font-size:12px;color:#0F2544;">Morrow Supply Chain Inc.</div>
+                <div style="font-size:10px;color:#94A3B8;">Tier B — Volume</div>
+              </td>
+              <td><span class="sku">MSC-77234</span></td>
+              <td><span class="pill pill-slate">Plain Email</span></td>
+              <td>7 lines</td>
+              <td><strong>$11,540</strong></td>
+              <td><span style="color:#B91C1C;font-size:12px;font-weight:700;">✗ 2 SKUs not matched</span></td>
+              <td><span class="pill pill-red">Held — SKU Error</span></td>
+              <td><span style="font-size:10px;color:#0284C7;cursor:pointer;font-weight:600;">Resolve →</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Line item detail panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Line Item Validation Detail — HBS-20440 (Halloran Brothers Supply)</div>
+            <div class="panel-sub">All 12 lines extracted from PDF, validated against ERP catalog and Tier A contract pricing</div>
+          </div>
+          <span class="pill pill-green">Posted to ERP</span>
+        </div>
+        <table class="line-table">
+          <thead>
+            <tr>
+              <th>Line</th>
+              <th>Extracted SKU</th>
+              <th>Catalog Match</th>
+              <th>Qty</th>
+              <th>Contract Price</th>
+              <th>Quoted Price</th>
+              <th>Variance</th>
+              <th>Valid</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><span class="sku">APX-4401-BK</span></td>
+              <td style="color:#15803D;font-weight:600;">Matched</td>
+              <td>200 units</td>
+              <td>$12.40</td>
+              <td>$12.40</td>
+              <td style="color:#15803D;">$0.00</td>
+              <td class="check">✓</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="sku">APX-2280-GY</span></td>
+              <td style="color:#15803D;font-weight:600;">Matched</td>
+              <td>500 units</td>
+              <td>$8.75</td>
+              <td>$8.75</td>
+              <td style="color:#15803D;">$0.00</td>
+              <td class="check">✓</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="sku">APX-9920-HD</span></td>
+              <td style="color:#15803D;font-weight:600;">Matched</td>
+              <td>50 units</td>
+              <td>$44.10</td>
+              <td>$44.10</td>
+              <td style="color:#15803D;">$0.00</td>
+              <td class="check">✓</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="sku">APX-3310-BK</span></td>
+              <td style="color:#15803D;font-weight:600;">Matched</td>
+              <td>300 units</td>
+              <td>$6.90</td>
+              <td>$6.90</td>
+              <td style="color:#15803D;">$0.00</td>
+              <td class="check">✓</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><span class="sku">APX-7701-SS</span></td>
+              <td style="color:#15803D;font-weight:600;">Matched</td>
+              <td>75 units</td>
+              <td>$29.50</td>
+              <td>$29.50</td>
+              <td style="color:#15803D;">$0.00</td>
+              <td class="check">✓</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="padding:8px 12px;font-size:10px;color:#94A3B8;border-top:1px solid #F1F5F9;">Showing 5 of 12 lines · All 12 validated · 0 exceptions · Posted to ERP at 09:14 AM today</div>
+      </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div class="col-4" style="display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Error rate visual -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Field Error Rate — Before vs. After</div>
+        </div>
+        <div class="rate-display">
+          <div class="rate-compare">
+            <div class="rate-bar-wrap">
+              <div class="rate-bar-outer">
+                <div class="rate-bar-inner bar-before" style="height:75%;"></div>
+              </div>
+              <div class="rate-val" style="color:#DC2626;">3–5%</div>
+              <div class="rate-label">Manual Entry</div>
+            </div>
+            <div class="rate-separator"></div>
+            <div class="rate-bar-wrap">
+              <div class="rate-bar-outer">
+                <div class="rate-bar-inner bar-after" style="height:6%;"></div>
+              </div>
+              <div class="rate-val" style="color:#16A34A;">0.4%</div>
+              <div class="rate-label">Agent Processing</div>
+            </div>
+          </div>
+          <div class="rate-note">Error rate measured on SKU match and contract pricing fields only. Source: 90-day production data.</div>
+        </div>
+      </div>
+
+      <!-- Today's stats -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Today's Processing Summary</div>
+        </div>
+        <div class="mini-stats">
+          <div class="stat-row">
+            <span class="stat-label">Total orders received</span>
+            <span class="stat-val">31</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Posted to ERP — no exceptions</span>
+            <span class="stat-val stat-val-green">29</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Held for human review</span>
+            <span class="stat-val stat-val-red">2</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Average processing time</span>
+            <span class="stat-val stat-val-blue">1m 48s</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Total order value processed</span>
+            <span class="stat-val">$284,610</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Pricing exceptions caught</span>
+            <span class="stat-val stat-val-green">1 flagged</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active exceptions -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Active Exceptions — Require Review</div>
+        </div>
+        <div class="exception-list">
+          <div class="exc-item">
+            <div class="exc-icon exc-amber">⚑</div>
+            <div class="exc-body">
+              <div class="exc-title">Dorado Industrial — Price Mismatch</div>
+              <div class="exc-sub">SKU APX-6650-HD: quoted $38.00 · contract rate $41.20 · diff $3.20/unit × 80 units</div>
+            </div>
+            <span class="exc-action">Resolve →</span>
+          </div>
+          <div class="exc-item">
+            <div class="exc-icon exc-red">✗</div>
+            <div class="exc-body">
+              <div class="exc-title">Morrow Supply — SKU Not Found</div>
+              <div class="exc-sub">2 SKUs in PO MSC-77234 have no catalog match. Possible discontinued items.</div>
+            </div>
+            <span class="exc-action">Resolve →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly trend -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Monthly Orders — Agent vs. Manual</div>
+        </div>
+        <div class="mini-stats">
+          <div class="stat-row">
+            <span class="stat-label">February (pre-deployment)</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:60px;height:5px;background:#E2E8F0;border-radius:3px;overflow:hidden;"><div style="width:0%;height:100%;background:#94A3B8;border-radius:3px;"></div></div>
+              <span style="font-size:11px;font-weight:600;color:#94A3B8;">0 agent</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">March (pilot)</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:60px;height:5px;background:#E2E8F0;border-radius:3px;overflow:hidden;"><div style="width:40%;height:100%;background:#0284C7;border-radius:3px;"></div></div>
+              <span style="font-size:11px;font-weight:600;color:#0284C7;">38%</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">April (production)</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:60px;height:5px;background:#E2E8F0;border-radius:3px;overflow:hidden;"><div style="width:94%;height:100%;background:#0284C7;border-radius:3px;"></div></div>
+              <span style="font-size:11px;font-weight:600;color:#0284C7;">94%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="font-size:10px;color:#94A3B8;margin-top:4px;">
+    Processing time measured from email receipt to ERP posting confirmation. Error rate benchmarked against prior 90-day manual processing period. Contract price validation pulls live data from ERP at time of processing.
+  </div>
+
+</div>
+</body>
+</html>

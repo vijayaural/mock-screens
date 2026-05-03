@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex Supply Co. | Voice Order Status Agent</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Courier New', 'SF Mono', 'Consolas', monospace; background: #080E1A; color: #CBD5E1; font-size: 12px; min-height: 100vh; }
+
+  /* Scan line overlay */
+  body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; z-index: 0; }
+
+  .topnav { background: #0A1628; border-bottom: 1px solid #1E3A5F; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 50px; position: relative; z-index: 10; }
+  .topnav-brand { display: flex; align-items: center; gap: 10px; }
+  .brand-text { color: #E2E8F0; font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+  .brand-sub { color: #38BDF8; font-size: 10px; letter-spacing: 2px; }
+  .system-status { display: flex; align-items: center; gap: 16px; }
+  .status-item { display: flex; align-items: center; gap: 5px; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot-live { background: #22C55E; animation: pulse-dot 1.5s infinite; }
+  .dot-idle { background: #38BDF8; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,0.4)} 50%{opacity:0.8;box-shadow:0 0 0 4px rgba(34,197,94,0)} }
+  .status-text { font-size: 10px; color: #64748B; letter-spacing: 0.5px; }
+  .status-text span { color: #94A3B8; }
+  .topnav-user { font-size: 10px; color: #475569; letter-spacing: 0.5px; }
+  .topnav-user span { color: #94A3B8; }
+
+  .main { display: flex; gap: 0; height: calc(100vh - 50px); position: relative; z-index: 1; }
+
+  /* Left panel — Active call */
+  .call-panel { width: 380px; flex-shrink: 0; background: #0A1628; border-right: 1px solid #1E3A5F; display: flex; flex-direction: column; }
+  .call-panel-header { padding: 14px 16px 10px; border-bottom: 1px solid #1A2E4A; }
+  .call-header-label { font-size: 9px; letter-spacing: 2px; color: #475569; text-transform: uppercase; margin-bottom: 6px; }
+  .call-status-row { display: flex; align-items: center; justify-content: space-between; }
+  .call-active { display: flex; align-items: center; gap: 8px; }
+  .call-live-badge { background: #022c22; border: 1px solid #16A34A; color: #22C55E; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 3px; letter-spacing: 1px; animation: pulse-bg 2s infinite; }
+  @keyframes pulse-bg { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .call-duration { font-size: 20px; color: #22C55E; letter-spacing: 1px; font-weight: 700; }
+  .call-timer-sub { font-size: 9px; color: #16A34A; letter-spacing: 1px; }
+  .caller-block { padding: 14px 16px; border-bottom: 1px solid #1A2E4A; }
+  .caller-label { font-size: 9px; color: #475569; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+  .caller-name { font-size: 16px; color: #E2E8F0; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .caller-company { font-size: 11px; color: #38BDF8; margin-bottom: 8px; }
+  .caller-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .caller-tag { font-size: 9px; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.5px; font-weight: 600; }
+  .tag-blue { background: #0C2340; border: 1px solid #1E3A5F; color: #38BDF8; }
+  .tag-green { background: #0B2010; border: 1px solid #15803D; color: #22C55E; }
+
+  /* Live transcript */
+  .transcript-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .transcript-label { padding: 10px 16px 6px; font-size: 9px; color: #475569; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid #1A2E4A; }
+  .transcript-body { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .transcript-body::-webkit-scrollbar { width: 4px; }
+  .transcript-body::-webkit-scrollbar-track { background: #0A1628; }
+  .transcript-body::-webkit-scrollbar-thumb { background: #1E3A5F; border-radius: 2px; }
+  .turn { display: flex; flex-direction: column; gap: 3px; }
+  .turn-speaker { font-size: 9px; letter-spacing: 1.5px; font-weight: 700; }
+  .speaker-caller { color: #38BDF8; }
+  .speaker-agent { color: #22C55E; }
+  .turn-text { font-size: 11px; color: #94A3B8; line-height: 1.5; }
+  .turn-text.agent-text { color: #CBD5E1; }
+  .cursor-blink { display: inline-block; width: 7px; height: 12px; background: #22C55E; vertical-align: middle; margin-left: 2px; animation: cursor 1s infinite; }
+  @keyframes cursor { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+  /* Voice waveform visualization */
+  .waveform-block { padding: 12px 16px; border-top: 1px solid #1A2E4A; display: flex; align-items: center; gap: 8px; }
+  .wave-label { font-size: 9px; color: #22C55E; letter-spacing: 1px; }
+  .wave { display: flex; align-items: center; gap: 2px; height: 24px; }
+  .wave-bar { width: 3px; border-radius: 2px; background: #22C55E; opacity: 0.7; }
+  .w1 { height: 8px; animation: wave1 0.8s ease-in-out infinite; }
+  .w2 { height: 16px; animation: wave2 0.7s ease-in-out infinite 0.1s; }
+  .w3 { height: 12px; animation: wave3 0.9s ease-in-out infinite 0.2s; }
+  .w4 { height: 20px; animation: wave1 0.6s ease-in-out infinite 0.15s; }
+  .w5 { height: 10px; animation: wave2 0.85s ease-in-out infinite 0.05s; }
+  .w6 { height: 18px; animation: wave3 0.75s ease-in-out infinite 0.3s; }
+  .w7 { height: 14px; animation: wave1 0.95s ease-in-out infinite 0.1s; }
+  .w8 { height: 8px; animation: wave2 0.8s ease-in-out infinite 0.25s; }
+  @keyframes wave1 { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(1.8)} }
+  @keyframes wave2 { 0%,100%{transform:scaleY(0.6)} 50%{transform:scaleY(1.4)} }
+  @keyframes wave3 { 0%,100%{transform:scaleY(1.2)} 50%{transform:scaleY(0.7)} }
+  .wave-idle { opacity: 0.2; }
+
+  /* Center — OMS lookup panel */
+  .lookup-panel { flex: 1; display: flex; flex-direction: column; background: #0C1525; }
+  .lookup-header { padding: 14px 18px 10px; border-bottom: 1px solid #1E3A5F; display: flex; align-items: center; justify-content: space-between; }
+  .lookup-title { font-size: 11px; color: #E2E8F0; font-weight: 700; letter-spacing: 0.5px; }
+  .lookup-sub { font-size: 9px; color: #475569; margin-top: 3px; letter-spacing: 1px; }
+  .lookup-badge { font-size: 9px; padding: 3px 10px; border-radius: 3px; background: #071525; border: 1px solid #1E3A5F; color: #38BDF8; letter-spacing: 1px; }
+
+  .order-card { margin: 14px 18px; background: #071525; border: 1px solid #1E3A5F; border-radius: 6px; overflow: hidden; }
+  .order-card-header { background: #0A1E38; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1E3A5F; }
+  .order-num { color: #38BDF8; font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+  .order-date { font-size: 9px; color: #475569; letter-spacing: 0.5px; }
+  .order-status-live { display: flex; align-items: center; gap: 6px; }
+  .oms-dot { width: 6px; height: 6px; border-radius: 50%; background: #F59E0B; animation: pulse-dot 1.5s infinite; }
+  .oms-status-text { font-size: 10px; color: #F59E0B; font-weight: 700; letter-spacing: 1px; }
+  .order-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-bottom: 1px solid #1A2E4A; }
+  .order-meta-cell { padding: 10px 14px; border-right: 1px solid #1A2E4A; }
+  .order-meta-cell:last-child { border-right: none; }
+  .meta-label { font-size: 9px; color: #475569; letter-spacing: 1px; margin-bottom: 4px; }
+  .meta-val { font-size: 13px; color: #E2E8F0; font-weight: 700; }
+  .meta-sub { font-size: 9px; color: #64748B; margin-top: 2px; }
+
+  /* Tracking timeline */
+  .track-block { padding: 14px; }
+  .track-label { font-size: 9px; color: #475569; letter-spacing: 2px; margin-bottom: 12px; }
+  .track-timeline { display: flex; flex-direction: column; gap: 0; }
+  .track-step { display: flex; gap: 12px; align-items: flex-start; padding-bottom: 12px; position: relative; }
+  .track-step:last-child { padding-bottom: 0; }
+  .track-step::before { content: ''; position: absolute; left: 7px; top: 14px; bottom: 0; width: 1px; background: #1A2E4A; }
+  .track-step:last-child::before { display: none; }
+  .track-dot { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; z-index: 1; }
+  .tdot-done { background: #16A34A; color: #fff; }
+  .tdot-active { background: #F59E0B; color: #fff; animation: pulse-bg 1.5s infinite; }
+  .tdot-pending { background: #1E3A5F; color: #475569; }
+  .track-info { flex: 1; }
+  .track-step-name { font-size: 11px; font-weight: 700; color: #CBD5E1; }
+  .track-step-name.done { color: #4ADE80; }
+  .track-step-name.active { color: #FCD34D; }
+  .track-step-name.pending { color: #475569; }
+  .track-step-detail { font-size: 9px; color: #475569; margin-top: 2px; letter-spacing: 0.3px; }
+  .track-step-time { font-size: 9px; color: #38BDF8; margin-top: 1px; }
+
+  /* OMS source indicator */
+  .oms-source { margin: 0 18px 14px; padding: 8px 12px; background: #071525; border: 1px solid #1A2E4A; border-radius: 4px; display: flex; align-items: center; gap: 8px; }
+  .oms-src-dot { width: 5px; height: 5px; background: #22C55E; border-radius: 50%; flex-shrink: 0; }
+  .oms-src-text { font-size: 9px; color: #475569; letter-spacing: 0.5px; }
+  .oms-src-text span { color: #38BDF8; }
+
+  /* Right panel — call stats and today's summary */
+  .stats-panel { width: 280px; flex-shrink: 0; background: #0A1628; border-left: 1px solid #1E3A5F; display: flex; flex-direction: column; }
+  .stats-header { padding: 14px 16px 10px; border-bottom: 1px solid #1A2E4A; }
+  .stats-label { font-size: 9px; color: #475569; letter-spacing: 2px; text-transform: uppercase; }
+
+  .kpi-list { display: flex; flex-direction: column; }
+  .kpi-item { padding: 11px 16px; border-bottom: 1px solid #1A2E4A; display: flex; flex-direction: column; gap: 2px; }
+  .kpi-item:last-child { border-bottom: none; }
+  .kpi-key { font-size: 9px; color: #475569; letter-spacing: 1px; }
+  .kpi-num { font-size: 20px; font-weight: 700; color: #22C55E; letter-spacing: 0.5px; line-height: 1; margin-top: 2px; }
+  .kpi-num-blue { color: #38BDF8; }
+  .kpi-num-amber { color: #F59E0B; }
+  .kpi-num-gray { color: #64748B; }
+  .kpi-note { font-size: 9px; color: #475569; }
+
+  .section-divider { padding: 10px 16px 6px; border-top: 1px solid #1A2E4A; }
+  .section-divider-label { font-size: 9px; color: #475569; letter-spacing: 2px; text-transform: uppercase; }
+
+  /* Recent call log */
+  .call-log { flex: 1; overflow-y: auto; }
+  .call-log::-webkit-scrollbar { width: 3px; }
+  .call-log::-webkit-scrollbar-track { background: #0A1628; }
+  .call-log::-webkit-scrollbar-thumb { background: #1E3A5F; }
+  .log-item { padding: 9px 16px; border-bottom: 1px solid #111E30; display: flex; flex-direction: column; gap: 3px; }
+  .log-item:last-child { border-bottom: none; }
+  .log-row { display: flex; justify-content: space-between; align-items: center; }
+  .log-company { font-size: 10px; color: #94A3B8; font-weight: 600; }
+  .log-time { font-size: 9px; color: #334155; }
+  .log-outcome { font-size: 9px; }
+  .outcome-resolved { color: #22C55E; }
+  .outcome-escalated { color: #F59E0B; }
+  .log-duration { font-size: 9px; color: #475569; }
+
+  .deflection-bar-block { padding: 12px 16px; border-top: 1px solid #1A2E4A; }
+  .defl-label { font-size: 9px; color: #475569; letter-spacing: 1px; margin-bottom: 8px; }
+  .defl-stat { font-size: 22px; font-weight: 700; color: #22C55E; }
+  .defl-sub { font-size: 9px; color: #475569; margin-top: 2px; }
+  .defl-bar { height: 6px; background: #1A2E4A; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .defl-fill { height: 100%; background: linear-gradient(90deg, #22C55E, #16A34A); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-brand">
+    <div>
+      <div class="brand-text">APEX SUPPLY CO.</div>
+      <div class="brand-sub">ORDER STATUS AGENT · COMMAND CENTER</div>
+    </div>
+  </div>
+  <div class="system-status">
+    <div class="status-item">
+      <div class="status-dot dot-live"></div>
+      <span class="status-text">AGENT <span>LIVE</span></span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot dot-idle"></div>
+      <span class="status-text">OMS <span>CONNECTED</span></span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot dot-idle"></div>
+      <span class="status-text">WMS <span>CONNECTED</span></span>
+    </div>
+  </div>
+  <div class="topnav-user">SUPERVISOR: <span>SARAH KIM · VP CUSTOMER OPERATIONS</span></div>
+</div>
+
+<div class="main">
+
+  <!-- LEFT: Active Call -->
+  <div class="call-panel">
+    <div class="call-panel-header">
+      <div class="call-header-label">ACTIVE CALL</div>
+      <div class="call-status-row">
+        <span class="call-live-badge">● LIVE</span>
+        <div style="text-align:right;">
+          <div class="call-duration">02:14</div>
+          <div class="call-timer-sub">CALL DURATION</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="caller-block">
+      <div class="caller-label">IDENTIFIED CALLER</div>
+      <div class="caller-name">Marcus Tran</div>
+      <div class="caller-company">Rexford Industrial LLC</div>
+      <div class="caller-meta">
+        <span class="caller-tag tag-blue">TIER B ACCOUNT</span>
+        <span class="caller-tag tag-green">KNOWN CALLER</span>
+        <span class="caller-tag tag-blue">14 ORDERS YTD</span>
+      </div>
+    </div>
+
+    <div class="transcript-wrap">
+      <div class="transcript-label">LIVE TRANSCRIPT</div>
+      <div class="transcript-body">
+        <div class="turn">
+          <div class="turn-speaker speaker-agent">AGENT</div>
+          <div class="turn-text agent-text">Thank you for calling Apex Supply Co. This is the order status line. I can pull up your order right away. Could you give me your PO number or account number?</div>
+        </div>
+        <div class="turn">
+          <div class="turn-speaker speaker-caller">CALLER — MARCUS TRAN</div>
+          <div class="turn-text">Yeah, hi. I placed an order last week — PO RIL-88203 — and I need to know when it's shipping. We have a production run on Thursday.</div>
+        </div>
+        <div class="turn">
+          <div class="turn-speaker speaker-agent">AGENT</div>
+          <div class="turn-text agent-text">I have your order right here, Marcus. PO RIL-88203, placed May 1st, six line items. Your order is currently picked and staged at our fulfillment center and is scheduled to ship today via LTL freight. Estimated delivery is Wednesday, May 6th.</div>
+        </div>
+        <div class="turn">
+          <div class="turn-speaker speaker-caller">CALLER — MARCUS TRAN</div>
+          <div class="turn-text">Wednesday. Okay, that works. Can you confirm all six items are included? We ordered some APX-2280-GY, I want to make sure that one is in there.</div>
+        </div>
+        <div class="turn">
+          <div class="turn-speaker speaker-agent">AGENT</div>
+          <div class="turn-text agent-text">All six line items are confirmed in the shipment. SKU APX-2280-GY is included — 500 units, as ordered. Would you like me to send a shipment confirmation with the tracking number to the email on your account?<span class="cursor-blink"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="waveform-block">
+      <span class="wave-label">SPEAKING</span>
+      <div class="wave">
+        <div class="wave-bar w1"></div>
+        <div class="wave-bar w2"></div>
+        <div class="wave-bar w3"></div>
+        <div class="wave-bar w4"></div>
+        <div class="wave-bar w5"></div>
+        <div class="wave-bar w6"></div>
+        <div class="wave-bar w7"></div>
+        <div class="wave-bar w8"></div>
+        <div class="wave-bar w1"></div>
+        <div class="wave-bar w3"></div>
+        <div class="wave-bar w5"></div>
+        <div class="wave-bar w2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: OMS Lookup -->
+  <div class="lookup-panel">
+    <div class="lookup-header">
+      <div>
+        <div class="lookup-title">ORDER MANAGEMENT SYSTEM — LIVE LOOKUP</div>
+        <div class="lookup-sub">AGENT QUERIED OMS + WMS AT 02:09 INTO CALL · RESULT IN 1.2 SEC</div>
+      </div>
+      <span class="lookup-badge">RIL-88203</span>
+    </div>
+
+    <div class="order-card">
+      <div class="order-card-header">
+        <div>
+          <div class="order-num">PO RIL-88203</div>
+          <div class="order-date">PLACED: MAY 01, 2026 · 08:44 AM</div>
+        </div>
+        <div class="order-status-live">
+          <div class="oms-dot"></div>
+          <span class="oms-status-text">PICKED & STAGED</span>
+        </div>
+      </div>
+
+      <div class="order-meta">
+        <div class="order-meta-cell">
+          <div class="meta-label">ACCOUNT</div>
+          <div class="meta-val" style="font-size:11px;">Rexford Industrial</div>
+          <div class="meta-sub">TIER B · VOLUME DISCOUNT</div>
+        </div>
+        <div class="order-meta-cell">
+          <div class="meta-label">ORDER VALUE</div>
+          <div class="meta-val">$7,915</div>
+          <div class="meta-sub">6 LINES · 1,230 UNITS</div>
+        </div>
+        <div class="order-meta-cell">
+          <div class="meta-label">EST. DELIVERY</div>
+          <div class="meta-val" style="color:#22C55E;">MAY 6</div>
+          <div class="meta-sub">LTL FREIGHT · PRE-THURSDAY</div>
+        </div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">FULFILLMENT TIMELINE</div>
+        <div class="track-timeline">
+          <div class="track-step">
+            <div class="track-dot tdot-done">✓</div>
+            <div class="track-info">
+              <div class="track-step-name done">ORDER RECEIVED</div>
+              <div class="track-step-time">MAY 01 · 08:44 AM</div>
+            </div>
+          </div>
+          <div class="track-step">
+            <div class="track-dot tdot-done">✓</div>
+            <div class="track-info">
+              <div class="track-step-name done">POSTED TO ERP</div>
+              <div class="track-step-time">MAY 01 · 08:46 AM · AGENT PROCESSED</div>
+            </div>
+          </div>
+          <div class="track-step">
+            <div class="track-dot tdot-done">✓</div>
+            <div class="track-info">
+              <div class="track-step-name done">PICK LIST GENERATED</div>
+              <div class="track-step-time">MAY 01 · 09:02 AM</div>
+            </div>
+          </div>
+          <div class="track-step">
+            <div class="track-dot tdot-done">✓</div>
+            <div class="track-info">
+              <div class="track-step-name done">PICKED — ALL 6 LINES CONFIRMED</div>
+              <div class="track-step-time">MAY 02 · 07:30 AM</div>
+            </div>
+          </div>
+          <div class="track-step">
+            <div class="track-dot tdot-active">●</div>
+            <div class="track-info">
+              <div class="track-step-name active">STAGED FOR PICKUP — LTL</div>
+              <div class="track-step-detail">CARRIER: ESTES EXPRESS · DOCK 4 · PICKUP WINDOW 2–5 PM</div>
+            </div>
+          </div>
+          <div class="track-step">
+            <div class="track-dot tdot-pending">○</div>
+            <div class="track-info">
+              <div class="track-step-name pending">IN TRANSIT</div>
+              <div class="track-step-detail">TRACKING WILL BE AVAILABLE POST-PICKUP</div>
+            </div>
+          </div>
+          <div class="track-step">
+            <div class="track-dot tdot-pending">○</div>
+            <div class="track-info">
+              <div class="track-step-name pending">DELIVERED</div>
+              <div class="track-step-detail">EST. MAY 6, 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="oms-source">
+      <div class="oms-src-dot"></div>
+      <span class="oms-src-text">LIVE DATA PULLED FROM <span>ACUMATICA ERP</span> + <span>WMS PICK CONFIRMATION</span> AT 09:32:14 · RESPONSE: 1.2 SEC · NO REP INVOLVED</span>
+    </div>
+  </div>
+
+  <!-- RIGHT: Stats Panel -->
+  <div class="stats-panel">
+    <div class="stats-header">
+      <div class="stats-label">TODAY'S PERFORMANCE</div>
+    </div>
+
+    <div class="kpi-list">
+      <div class="kpi-item">
+        <div class="kpi-key">CALLS HANDLED — TODAY</div>
+        <div class="kpi-num">47</div>
+        <div class="kpi-note">38 resolved · 9 escalated</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-key">SELF-SERVICE RESOLUTION RATE</div>
+        <div class="kpi-num">81<span style="font-size:13px;">%</span></div>
+        <div class="kpi-note">vs. 0% before deployment</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-key">AVG. HANDLE TIME</div>
+        <div class="kpi-num kpi-num-blue">1m 52s</div>
+        <div class="kpi-note">WISMO queries · order status</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-key">ESCALATIONS TODAY</div>
+        <div class="kpi-num kpi-num-amber">9</div>
+        <div class="kpi-note">Policy exceptions · disputes</div>
+      </div>
+    </div>
+
+    <div class="deflection-bar-block">
+      <div class="defl-label">MONTHLY DEFLECTION RATE</div>
+      <div class="defl-stat">81%</div>
+      <div class="defl-sub">838 of 1,034 calls this month resolved without a rep</div>
+      <div class="defl-bar"><div class="defl-fill" style="width:81%;"></div></div>
+    </div>
+
+    <div class="section-divider">
+      <div class="section-divider-label">RECENT CALLS — TODAY</div>
+    </div>
+
+    <div class="call-log">
+      <div class="log-item">
+        <div class="log-row">
+          <span class="log-company">Pacific Basin Distributors</span>
+          <span class="log-time">09:18 AM</span>
+        </div>
+        <div class="log-row">
+          <span class="log-outcome outcome-resolved">✓ RESOLVED — ORDER STATUS</span>
+          <span class="log-duration">1m 38s</span>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-row">
+          <span class="log-company">Halloran Brothers Supply</span>
+          <span class="log-time">09:04 AM</span>
+        </div>
+        <div class="log-row">
+          <span class="log-outcome outcome-resolved">✓ RESOLVED — ETA QUERY</span>
+          <span class="log-duration">2m 05s</span>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-row">
+          <span class="log-company">Kenworth Hardware Group</span>
+          <span class="log-time">08:51 AM</span>
+        </div>
+        <div class="log-row">
+          <span class="log-outcome outcome-escalated">⚑ ESCALATED — DISPUTE</span>
+          <span class="log-duration">4m 12s</span>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-row">
+          <span class="log-company">Dorado Industrial Partners</span>
+          <span class="log-time">08:39 AM</span>
+        </div>
+        <div class="log-row">
+          <span class="log-outcome outcome-resolved">✓ RESOLVED — ORDER STATUS</span>
+          <span class="log-duration">1m 21s</span>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-row">
+          <span class="log-company">Morrow Supply Chain Inc.</span>
+          <span class="log-time">08:27 AM</span>
+        </div>
+        <div class="log-row">
+          <span class="log-outcome outcome-resolved">✓ RESOLVED — TRACKING</span>
+          <span class="log-duration">1m 47s</span>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-row">
+          <span class="log-company">Rexford Industrial LLC</span>
+          <span class="log-time">08:14 AM</span>
+        </div>
+        <div class="log-row">
+          <span class="log-outcome outcome-resolved">✓ RESOLVED — ETA QUERY</span>
+          <span class="log-duration">2m 03s</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
