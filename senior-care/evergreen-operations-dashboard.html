@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evergreen Senior Living | Operations Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F1F5F9; color: #1E293B; font-size: 13px; }
+
+  /* Top nav */
+  .topnav { background: #1F3864; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 52px; }
+  .topnav-brand { color: #fff; font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
+  .topnav-brand span { color: #00A896; }
+  .topnav-right { display: flex; align-items: center; gap: 16px; }
+  .topnav-badge { background: #00A896; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .topnav-user { color: #94A3B8; font-size: 12px; }
+  .alert-dot { width: 8px; height: 8px; background: #EF4444; border-radius: 50%; display: inline-block; margin-right: 4px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Sub nav */
+  .subnav { background: #fff; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; gap: 0; padding: 0 20px; height: 42px; }
+  .subnav-tab { padding: 0 16px; height: 42px; display: flex; align-items: center; font-size: 12px; font-weight: 500; color: #64748B; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .subnav-tab.active { color: #028090; border-bottom-color: #028090; }
+  .subnav-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .btn-sm { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: #028090; color: #fff; }
+  .btn-outline { background: transparent; border: 1px solid #CBD5E1; color: #475569; }
+
+  /* Layout */
+  .main { padding: 16px 20px; }
+  .row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .col { flex: 1; }
+
+  /* KPI strip */
+  .kpi-strip { display: flex; gap: 10px; margin-bottom: 12px; }
+  .kpi-card { flex: 1; background: #fff; border-radius: 8px; padding: 14px 16px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .kpi-label { font-size: 10px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .kpi-value { font-size: 26px; font-weight: 700; color: #1E293B; line-height: 1; }
+  .kpi-sub { font-size: 10px; color: #94A3B8; margin-top: 4px; }
+  .kpi-trend { font-size: 10px; font-weight: 600; }
+  .kpi-trend.up { color: #16A34A; }
+  .kpi-trend.down { color: #DC2626; }
+  .kpi-trend.warn { color: #D97706; }
+
+  /* Community table */
+  .panel { background: #fff; border-radius: 8px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+  .panel-header { padding: 12px 16px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 13px; font-weight: 700; color: #1E293B; }
+  .panel-subtitle { font-size: 10px; color: #94A3B8; margin-top: 1px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #F8FAFC; font-size: 10px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.3px; padding: 8px 12px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+  td { padding: 9px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #FAFCFF; }
+  .comm-name { font-weight: 600; font-size: 12px; color: #1E293B; }
+  .comm-type { font-size: 10px; color: #94A3B8; margin-top: 1px; }
+
+  /* Status pills */
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .pill-green { background: #DCFCE7; color: #15803D; }
+  .pill-amber { background: #FEF3C7; color: #B45309; }
+  .pill-red { background: #FEE2E2; color: #B91C1C; }
+  .pill-blue { background: #DBEAFE; color: #1D4ED8; }
+
+  /* Occupancy bar */
+  .occ-bar { width: 80px; height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .occ-fill { height: 100%; border-radius: 3px; }
+  .occ-green { background: #16A34A; }
+  .occ-amber { background: #D97706; }
+  .occ-red { background: #DC2626; }
+  .occ-val { font-size: 11px; font-weight: 600; }
+
+  /* Alert panel */
+  .alert-list { padding: 8px 0; }
+  .alert-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 16px; border-bottom: 1px solid #F1F5F9; }
+  .alert-item:last-child { border-bottom: none; }
+  .alert-dot-red { width: 7px; height: 7px; border-radius: 50%; background: #EF4444; margin-top: 4px; flex-shrink: 0; }
+  .alert-dot-amber { width: 7px; height: 7px; border-radius: 50%; background: #F59E0B; margin-top: 4px; flex-shrink: 0; }
+  .alert-dot-blue { width: 7px; height: 7px; border-radius: 50%; background: #3B82F6; margin-top: 4px; flex-shrink: 0; }
+  .alert-text { font-size: 11px; color: #334155; line-height: 1.4; }
+  .alert-time { font-size: 10px; color: #94A3B8; margin-top: 2px; }
+
+  /* Mini bar chart */
+  .sparkbar { display: flex; gap: 3px; align-items: flex-end; height: 28px; }
+  .sparkbar-col { width: 6px; border-radius: 2px 2px 0 0; background: #BAE6FD; }
+  .sparkbar-col.active { background: #028090; }
+
+  /* Filter bar */
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .filter-label { font-size: 11px; color: #64748B; font-weight: 500; }
+  .filter-chip { padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; border: 1px solid #E2E8F0; background: #fff; color: #475569; }
+  .filter-chip.active { background: #028090; color: #fff; border-color: #028090; }
+  .search-box { margin-left: auto; padding: 5px 10px; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 11px; color: #475569; width: 160px; background: #fff; }
+
+  /* Donut placeholder */
+  .donut-wrap { display: flex; align-items: center; gap: 16px; padding: 12px 16px; }
+  .donut-svg { flex-shrink: 0; }
+  .donut-legend { flex: 1; }
+  .donut-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .donut-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .donut-label { font-size: 11px; color: #475569; }
+  .donut-pct { font-size: 11px; font-weight: 700; color: #1E293B; }
+
+  /* Trend line SVG */
+  .trend-wrap { padding: 8px 16px 12px; }
+  .trend-label { font-size: 10px; color: #64748B; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+
+  .timestamp { color: #94A3B8; font-size: 10px; }
+  .powered { font-size: 9px; color: #CBD5E1; text-align: right; padding: 8px 20px; }
+</style>
+</head>
+<body>
+
+<!-- Top Nav -->
+<div class="topnav">
+  <div class="topnav-brand">Evergreen Senior Living <span>| Operations Intelligence</span></div>
+  <div class="topnav-right">
+    <span><span class="alert-dot"></span><span style="color:#94A3B8;font-size:11px;">3 alerts require attention</span></span>
+    <span class="topnav-badge">Live</span>
+    <span class="topnav-user">Patricia Lawson &nbsp;|&nbsp; President</span>
+  </div>
+</div>
+
+<!-- Sub nav -->
+<div class="subnav">
+  <div class="subnav-tab active">Portfolio Overview</div>
+  <div class="subnav-tab">Labor and Staffing</div>
+  <div class="subnav-tab">Clinical Risk</div>
+  <div class="subnav-tab">Financial</div>
+  <div class="subnav-tab">Occupancy</div>
+  <div class="subnav-tab">Acquisitions</div>
+  <div class="subnav-right">
+    <span class="timestamp">Updated 8 min ago</span>
+    <button class="btn-sm btn-outline">Export</button>
+    <button class="btn-sm btn-primary">+ New Report</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-label">Portfolio Occupancy</div>
+      <div class="kpi-value" style="color:#028090">93.4%</div>
+      <div class="kpi-sub"><span class="kpi-trend up">+1.2%</span> vs last month &nbsp;|&nbsp; Ind. avg 89.1%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Communities Fully Staffed</div>
+      <div class="kpi-value">19 <span style="font-size:14px;color:#94A3B8">/ 22</span></div>
+      <div class="kpi-sub"><span class="kpi-trend warn">3 communities</span> have open shifts today</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Agency Spend MTD</div>
+      <div class="kpi-value" style="color:#D97706">$184K</div>
+      <div class="kpi-sub"><span class="kpi-trend down">+$23K</span> vs budget &nbsp;|&nbsp; Maplewood: $61K</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Unbilled Services Detected</div>
+      <div class="kpi-value" style="color:#EF4444">$247K</div>
+      <div class="kpi-sub"><span class="kpi-trend down">Across 14 communities</span> this month</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">NOI Margin (Portfolio)</div>
+      <div class="kpi-value" style="color:#16A34A">26.8%</div>
+      <div class="kpi-sub"><span class="kpi-trend up">+0.9pts</span> vs Q4 2025</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Active Residents</div>
+      <div class="kpi-value">3,287</div>
+      <div class="kpi-sub">Capacity 3,519 &nbsp;|&nbsp; <span class="kpi-trend up">+48</span> vs last month</div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <span class="filter-label">Filter:</span>
+    <span class="filter-chip active">All 22 Communities</span>
+    <span class="filter-chip">Oregon (16)</span>
+    <span class="filter-chip">Montana (5)</span>
+    <span class="filter-chip">Washington (1)</span>
+    <span class="filter-chip">Needs Attention</span>
+    <input class="search-box" type="text" placeholder="Search community...">
+  </div>
+
+  <div class="row">
+    <!-- Community table -->
+    <div class="col" style="flex:2">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Community Performance</div>
+            <div class="panel-subtitle">Real-time data from PointClickCare, scheduling system, and financial platform</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-sm btn-outline">Sort</button>
+            <button class="btn-sm btn-outline">Columns</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Community</th>
+              <th>Occupancy</th>
+              <th>Staffing</th>
+              <th>Agency $</th>
+              <th>Revenue Leak</th>
+              <th>NOI</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="comm-name">Evergreen at Riverside</div>
+                <div class="comm-type">IL / AL / MC &nbsp;|&nbsp; Vancouver, WA</div>
+              </td>
+              <td>
+                <div class="occ-bar"><div class="occ-fill occ-green" style="width:96%"></div></div>
+                <span class="occ-val">96%</span>
+              </td>
+              <td><span class="pill pill-green">Fully staffed</span></td>
+              <td style="color:#16A34A;font-weight:600">$8.2K</td>
+              <td style="color:#94A3B8">$0</td>
+              <td style="color:#16A34A;font-weight:600">31.2%</td>
+              <td><span class="pill pill-green">On Track</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="comm-name">Evergreen at Lakeview</div>
+                <div class="comm-type">IL / AL &nbsp;|&nbsp; Riverside, OR</div>
+              </td>
+              <td>
+                <div class="occ-bar"><div class="occ-fill occ-green" style="width:94%"></div></div>
+                <span class="occ-val">94%</span>
+              </td>
+              <td><span class="pill pill-green">Fully staffed</span></td>
+              <td style="color:#16A34A;font-weight:600">$11.4K</td>
+              <td style="color:#D97706;font-weight:600">$18.3K</td>
+              <td style="color:#16A34A;font-weight:600">28.7%</td>
+              <td><span class="pill pill-green">On Track</span></td>
+            </tr>
+            <tr style="background:#FFFBEB">
+              <td>
+                <div class="comm-name">Evergreen at Maplewood</div>
+                <div class="comm-type">AL / MC &nbsp;|&nbsp; Salem, OR</div>
+              </td>
+              <td>
+                <div class="occ-bar"><div class="occ-fill occ-amber" style="width:87%"></div></div>
+                <span class="occ-val">87%</span>
+              </td>
+              <td><span class="pill pill-red">2 open shifts</span></td>
+              <td style="color:#DC2626;font-weight:600">$61.4K</td>
+              <td style="color:#DC2626;font-weight:600">$34.1K</td>
+              <td style="color:#D97706;font-weight:600">21.3%</td>
+              <td><span class="pill pill-amber">Needs Attention</span></td>
+            </tr>
+            <tr style="background:#FFF5F5">
+              <td>
+                <div class="comm-name">Evergreen at Cedar Creek</div>
+                <div class="comm-type">AL / MC &nbsp;|&nbsp; Cedar Creek, OR</div>
+              </td>
+              <td>
+                <div class="occ-bar"><div class="occ-fill occ-amber" style="width:81%"></div></div>
+                <span class="occ-val">81%</span>
+              </td>
+              <td><span class="pill pill-amber">1 open shift</span></td>
+              <td style="color:#D97706;font-weight:600">$29.7K</td>
+              <td style="color:#DC2626;font-weight:600">$41.8K</td>
+              <td style="color:#D97706;font-weight:600">18.9%</td>
+              <td><span class="pill pill-red">Review Now</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="comm-name">Evergreen at Pinehurst</div>
+                <div class="comm-type">IL / AL / MC &nbsp;|&nbsp; Whitefish, MT</div>
+              </td>
+              <td>
+                <div class="occ-bar"><div class="occ-fill occ-green" style="width:95%"></div></div>
+                <span class="occ-val">95%</span>
+              </td>
+              <td><span class="pill pill-green">Fully staffed</span></td>
+              <td style="color:#16A34A;font-weight:600">$6.8K</td>
+              <td style="color:#94A3B8">$0</td>
+              <td style="color:#16A34A;font-weight:600">29.4%</td>
+              <td><span class="pill pill-green">On Track</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="comm-name">Evergreen at Willowbrook</div>
+                <div class="comm-type">AL / MC &nbsp;|&nbsp; Beaverton, OR</div>
+              </td>
+              <td>
+                <div class="occ-bar"><div class="occ-fill occ-green" style="width:89%"></div></div>
+                <span class="occ-val">89%</span>
+              </td>
+              <td><span class="pill pill-green">Fully staffed</span></td>
+              <td style="color:#D97706;font-weight:600">$19.2K</td>
+              <td style="color:#D97706;font-weight:600">$22.6K</td>
+              <td style="font-weight:600">24.1%</td>
+              <td><span class="pill pill-blue">New — Monitoring</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="comm-name">Evergreen at Stonegate</div>
+                <div class="comm-type">IL / AL &nbsp;|&nbsp; Missoula, MT</div>
+              </td>
+              <td>
+                <div class="occ-bar"><div class="occ-fill occ-green" style="width:93%"></div></div>
+                <span class="occ-val">93%</span>
+              </td>
+              <td><span class="pill pill-green">Fully staffed</span></td>
+              <td style="color:#16A34A;font-weight:600">$9.1K</td>
+              <td style="color:#94A3B8">$4.2K</td>
+              <td style="color:#16A34A;font-weight:600">27.6%</td>
+              <td><span class="pill pill-green">On Track</span></td>
+            </tr>
+            <tr>
+              <td colspan="7" style="text-align:center;color:#94A3B8;font-size:11px;padding:10px">
+                Showing 7 of 22 communities &nbsp;|&nbsp; <span style="color:#028090;cursor:pointer;font-weight:600">View all 22 communities</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right panels -->
+    <div class="col" style="flex:0 0 280px;">
+      <!-- Alerts -->
+      <div class="panel" style="margin-bottom:12px;">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Active Alerts</div>
+            <div class="panel-subtitle">Requires action today</div>
+          </div>
+          <span class="pill pill-red">3 urgent</span>
+        </div>
+        <div class="alert-list">
+          <div class="alert-item">
+            <div class="alert-dot-red"></div>
+            <div>
+              <div class="alert-text"><strong>Maplewood:</strong> CNA shift uncovered 6 AM tomorrow. Voice AI calling available staff now.</div>
+              <div class="alert-time">2 min ago &nbsp;·&nbsp; Labor</div>
+            </div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-dot-red"></div>
+            <div>
+              <div class="alert-text"><strong>Cedar Creek:</strong> $41.8K in unbilled AL care services detected. 6 residents affected.</div>
+              <div class="alert-time">14 min ago &nbsp;·&nbsp; Revenue</div>
+            </div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-dot-amber"></div>
+            <div>
+              <div class="alert-text"><strong>Maplewood:</strong> Agency spend on pace to exceed monthly budget by $18K.</div>
+              <div class="alert-time">1 hr ago &nbsp;·&nbsp; Finance</div>
+            </div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-dot-blue"></div>
+            <div>
+              <div class="alert-text"><strong>Beaverton (new):</strong> Baseline metrics established. Initial revenue leakage scan running.</div>
+              <div class="alert-time">3 hrs ago &nbsp;·&nbsp; Onboarding</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Occupancy chart -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Occupancy Distribution</div>
+            <div class="panel-subtitle">All 22 communities</div>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#E2E8F0" stroke-width="12"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#16A34A" stroke-width="12" stroke-dasharray="113 75" stroke-dashoffset="8" stroke-linecap="round"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#D97706" stroke-width="12" stroke-dasharray="38 150" stroke-dashoffset="-105" stroke-linecap="round"/>
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#DC2626" stroke-width="12" stroke-dasharray="19 169" stroke-dashoffset="-143" stroke-linecap="round"/>
+            <text x="40" y="36" text-anchor="middle" font-size="12" font-weight="700" fill="#1E293B">93.4%</text>
+            <text x="40" y="50" text-anchor="middle" font-size="8" fill="#64748B">avg occ.</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="donut-row">
+              <span><span class="donut-dot" style="background:#16A34A"></span><span class="donut-label">Above 90%</span></span>
+              <span class="donut-pct">15</span>
+            </div>
+            <div class="donut-row">
+              <span><span class="donut-dot" style="background:#D97706"></span><span class="donut-label">85 to 90%</span></span>
+              <span class="donut-pct">5</span>
+            </div>
+            <div class="donut-row">
+              <span><span class="donut-dot" style="background:#DC2626"></span><span class="donut-label">Below 85%</span></span>
+              <span class="donut-pct">2</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="powered">Powered by Tayana Intelligence Platform &nbsp;|&nbsp; Data sourced from PointClickCare, scheduling system, Sage Intacct, HubSpot &nbsp;|&nbsp; Last sync 8 min ago</div>
+
+</body>
+</html>

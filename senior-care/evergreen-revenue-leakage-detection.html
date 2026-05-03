@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evergreen Senior Living | Revenue Leakage Detection</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#F8FAFC; color:#1E293B; font-size:13px; }
+
+  .topnav { background:#1F3864; display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:52px; }
+  .topnav-brand { color:#fff; font-size:16px; font-weight:700; }
+  .topnav-brand span { color:#00A896; }
+  .topnav-meta { color:#94A3B8; font-size:12px; }
+
+  .subnav { background:#fff; border-bottom:1px solid #E2E8F0; display:flex; align-items:center; padding:0 20px; height:42px; gap:4px; }
+  .tab { padding:0 14px; height:42px; display:flex; align-items:center; font-size:12px; font-weight:500; color:#64748B; cursor:pointer; border-bottom:2px solid transparent; }
+  .tab.active { color:#028090; border-bottom-color:#028090; }
+  .tab-right { margin-left:auto; display:flex; gap:8px; }
+  .btn { padding:5px 12px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; border:none; }
+  .btn-primary { background:#028090; color:#fff; }
+  .btn-success { background:#16A34A; color:#fff; }
+  .btn-outline { background:transparent; border:1px solid #CBD5E1; color:#475569; }
+  .btn-red { background:#EF4444; color:#fff; }
+
+  .main { padding:16px 20px; }
+
+  /* Alert banner */
+  .alert-banner { background:#FEF3C7; border:1px solid #FCD34D; border-radius:8px; padding:12px 16px; margin-bottom:14px; display:flex; align-items:center; gap:12px; }
+  .alert-icon { font-size:18px; }
+  .alert-msg { font-size:12px; color:#92400E; font-weight:500; flex:1; }
+  .alert-action { font-size:11px; color:#028090; font-weight:700; cursor:pointer; text-decoration:underline; }
+
+  /* KPI strip */
+  .kpi-row { display:flex; gap:10px; margin-bottom:14px; }
+  .kpi { flex:1; background:#fff; border-radius:8px; padding:14px 16px; border:1px solid #E2E8F0; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .kpi-lbl { font-size:10px; font-weight:600; color:#64748B; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+  .kpi-val { font-size:24px; font-weight:700; line-height:1; }
+  .kpi-sub { font-size:10px; color:#94A3B8; margin-top:4px; }
+  .red { color:#DC2626; }
+  .amber { color:#D97706; }
+  .green { color:#16A34A; }
+  .navy { color:#1F3864; }
+
+  /* Two-column layout */
+  .two-col { display:grid; grid-template-columns:1fr 380px; gap:12px; }
+
+  .panel { background:#fff; border-radius:8px; border:1px solid #E2E8F0; box-shadow:0 1px 3px rgba(0,0,0,0.05); overflow:hidden; }
+  .panel-hdr { padding:12px 16px; border-bottom:1px solid #F1F5F9; display:flex; align-items:center; justify-content:space-between; }
+  .panel-title { font-size:13px; font-weight:700; color:#1E293B; }
+  .panel-sub { font-size:10px; color:#94A3B8; margin-top:1px; }
+
+  table { width:100%; border-collapse:collapse; }
+  th { background:#F8FAFC; font-size:10px; font-weight:600; color:#64748B; text-transform:uppercase; letter-spacing:0.3px; padding:8px 12px; text-align:left; border-bottom:1px solid #E2E8F0; }
+  td { padding:9px 12px; border-bottom:1px solid #F1F5F9; vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr.highlight { background:#FFFBEB; }
+  tr.critical { background:#FFF5F5; }
+  tr:hover td { background:#F8FAFC; }
+
+  .res-name { font-weight:600; font-size:12px; color:#1E293B; }
+  .res-room { font-size:10px; color:#94A3B8; }
+  .res-care { display:inline-block; padding:1px 6px; border-radius:8px; font-size:9px; font-weight:600; }
+  .care-al { background:#DBEAFE; color:#1E40AF; }
+  .care-mc { background:#EDE9FE; color:#5B21B6; }
+  .care-il { background:#D1FAE5; color:#065F46; }
+
+  .pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:600; }
+  .pill-red { background:#FEE2E2; color:#B91C1C; }
+  .pill-amber { background:#FEF3C7; color:#B45309; }
+  .pill-green { background:#DCFCE7; color:#15803D; }
+
+  .amount-red { color:#DC2626; font-weight:700; }
+  .amount-amber { color:#D97706; font-weight:700; }
+
+  /* Right panel items */
+  .community-row { padding:10px 16px; border-bottom:1px solid #F1F5F9; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:background 0.1s; }
+  .community-row:hover { background:#F8FAFC; }
+  .community-row.active { background:#EFF6FF; }
+  .comm-info { flex:1; }
+  .comm-name { font-size:12px; font-weight:600; color:#1E293B; }
+  .comm-sub { font-size:10px; color:#94A3B8; margin-top:1px; }
+  .comm-amount { font-size:13px; font-weight:700; }
+
+  /* Progress bar */
+  .prog-bar { height:4px; background:#E2E8F0; border-radius:2px; margin-top:5px; overflow:hidden; }
+  .prog-fill { height:100%; border-radius:2px; }
+
+  /* Sidebar summary */
+  .sidebar-summary { padding:14px 16px; background:#F8FAFC; border-top:1px solid #E2E8F0; }
+  .sum-title { font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+  .sum-item { display:flex; justify-content:space-between; margin-bottom:6px; align-items:center; }
+  .sum-lbl { font-size:11px; color:#64748B; }
+  .sum-val { font-size:12px; font-weight:700; color:#1E293B; }
+
+  /* How it works strip */
+  .how-strip { background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:12px 16px; margin-bottom:14px; display:flex; gap:0; }
+  .how-step { flex:1; display:flex; gap:10px; align-items:flex-start; padding:0 12px; border-right:1px solid #BFDBFE; }
+  .how-step:first-child { padding-left:0; }
+  .how-step:last-child { border-right:none; }
+  .how-num { width:22px; height:22px; background:#1D4ED8; color:#fff; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; margin-top:1px; }
+  .how-text { font-size:11px; color:#1E40AF; line-height:1.4; }
+  .how-bold { font-weight:700; }
+
+  .powered { font-size:9px; color:#CBD5E1; text-align:right; padding:8px 20px; }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-brand">Evergreen Senior Living <span>| Revenue Leakage Detection</span></div>
+  <div style="display:flex;gap:16px;align-items:center;">
+    <span class="topnav-meta">Scan completed &nbsp;·&nbsp; March 25, 2026 at 7:14 AM</span>
+    <span style="background:#EF4444;color:#fff;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;">$247K Detected</span>
+  </div>
+</div>
+
+<div class="subnav">
+  <div class="tab active">Leakage by Resident</div>
+  <div class="tab">By Community</div>
+  <div class="tab">By Service Type</div>
+  <div class="tab">Resolved</div>
+  <div class="tab">History</div>
+  <div class="tab-right">
+    <button class="btn btn-outline">Filter</button>
+    <button class="btn btn-outline">Export to Finance</button>
+    <button class="btn btn-success">Mark All Reviewed</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Alert banner -->
+  <div class="alert-banner">
+    <div class="alert-icon">⚠️</div>
+    <div class="alert-msg">AI detected $247,391 in unbilled services across 14 communities this month. These are services already being delivered to residents that are not reflected in current billing records. No changes have been made. Your finance team reviews and approves each correction.</div>
+    <div class="alert-action">How does this work?</div>
+  </div>
+
+  <!-- How it works strip -->
+  <div class="how-strip">
+    <div class="how-step">
+      <div class="how-num">1</div>
+      <div class="how-text"><span class="how-bold">AI reads PointClickCare</span> care records for every resident daily.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num">2</div>
+      <div class="how-text"><span class="how-bold">Compares to billing records.</span> Flags gaps where services exceed current care level.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num">3</div>
+      <div class="how-text"><span class="how-bold">Your finance team reviews</span> each flag and corrects the billing record.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num">4</div>
+      <div class="how-text"><span class="how-bold">No AI billing changes.</span> AI only surfaces. Humans always approve.</div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-lbl">Total Unbilled This Month</div>
+      <div class="kpi-val red">$247,391</div>
+      <div class="kpi-sub">Across 14 of 22 communities</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Residents Affected</div>
+      <div class="kpi-val amber">67</div>
+      <div class="kpi-sub">2.0% of total resident population</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Avg Unbilled per Resident</div>
+      <div class="kpi-val amber">$3,693</div>
+      <div class="kpi-sub">Per affected resident per month</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Resolved This Month</div>
+      <div class="kpi-val green">$189,240</div>
+      <div class="kpi-sub">43 residents corrected and rebilled</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Annual Run Rate</div>
+      <div class="kpi-val navy">$2.97M</div>
+      <div class="kpi-sub">If pattern holds across full year</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- Main table -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div>
+          <div class="panel-title">Residents with Unbilled Services</div>
+          <div class="panel-sub">Services confirmed delivered in PointClickCare but not in billing record</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-outline">Sort by amount</button>
+          <button class="btn btn-outline">All communities</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Resident</th>
+            <th>Community</th>
+            <th>Current Level</th>
+            <th>Services Detected</th>
+            <th>Monthly Gap</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="critical">
+            <td>
+              <div class="res-name">R. Fitzgerald</div>
+              <div class="res-room">Room 214 &nbsp;·&nbsp; MC Wing</div>
+            </td>
+            <td style="font-size:11px;color:#475569;">Cedar Creek</td>
+            <td><span class="res-care care-al">AL Level 2</span></td>
+            <td style="font-size:11px;color:#475569;">Daily 2-person assist, night checks, med management level 3. Receiving MC-equivalent care for 6 weeks.</td>
+            <td><span class="amount-red">$2,840</span></td>
+            <td><button class="btn btn-red" style="font-size:10px;padding:4px 8px;">Review</button></td>
+          </tr>
+          <tr class="critical">
+            <td>
+              <div class="res-name">M. Okonkwo</div>
+              <div class="res-room">Room 108 &nbsp;·&nbsp; AL South</div>
+            </td>
+            <td style="font-size:11px;color:#475569;">Maplewood</td>
+            <td><span class="res-care care-al">AL Level 1</span></td>
+            <td style="font-size:11px;color:#475569;">Wound care daily, incontinence support 3x/shift, mobility assist. Level 3 care provided.</td>
+            <td><span class="amount-red">$2,210</span></td>
+            <td><button class="btn btn-red" style="font-size:10px;padding:4px 8px;">Review</button></td>
+          </tr>
+          <tr class="highlight">
+            <td>
+              <div class="res-name">D. Sorensen</div>
+              <div class="res-room">Room 312 &nbsp;·&nbsp; MC Wing</div>
+            </td>
+            <td style="font-size:11px;color:#475569;">Cedar Creek</td>
+            <td><span class="res-care care-mc">MC Standard</span></td>
+            <td style="font-size:11px;color:#475569;">Enhanced behavioral program, 1-on-1 supervision segments. MC Enhanced not billed.</td>
+            <td><span class="amount-amber">$1,650</span></td>
+            <td><button class="btn btn-outline" style="font-size:10px;padding:4px 8px;">Review</button></td>
+          </tr>
+          <tr class="highlight">
+            <td>
+              <div class="res-name">A. Bernstein</div>
+              <div class="res-room">Room 402 &nbsp;·&nbsp; IL Wing</div>
+            </td>
+            <td style="font-size:11px;color:#475569;">Carman Oaks</td>
+            <td><span class="res-care care-il">IL Standard</span></td>
+            <td style="font-size:11px;color:#475569;">Medication management added 5 weeks ago. AL Level 1 care not reflected in billing.</td>
+            <td><span class="amount-amber">$1,420</span></td>
+            <td><button class="btn btn-outline" style="font-size:10px;padding:4px 8px;">Review</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="res-name">T. Nakashima</div>
+              <div class="res-room">Room 156 &nbsp;·&nbsp; AL North</div>
+            </td>
+            <td style="font-size:11px;color:#475569;">Beaverton</td>
+            <td><span class="res-care care-al">AL Level 2</span></td>
+            <td style="font-size:11px;color:#475569;">Physical therapy 3x/week added after fall. Not in current billing cycle.</td>
+            <td><span class="amount-amber">$980</span></td>
+            <td><button class="btn btn-outline" style="font-size:10px;padding:4px 8px;">Review</button></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="res-name">G. Harrington</div>
+              <div class="res-room">Room 288 &nbsp;·&nbsp; AL South</div>
+            </td>
+            <td style="font-size:11px;color:#475569;">Riverside</td>
+            <td><span class="res-care care-al">AL Level 1</span></td>
+            <td style="font-size:11px;color:#475569;">Dining assist added. Escort to meals 3x daily. Level 2 care since readmission.</td>
+            <td><span class="amount-amber">$760</span></td>
+            <td><button class="btn btn-outline" style="font-size:10px;padding:4px 8px;">Review</button></td>
+          </tr>
+          <tr>
+            <td colspan="6" style="text-align:center;color:#94A3B8;font-size:11px;padding:10px;">
+              Showing 6 of 67 affected residents &nbsp;|&nbsp; <span style="color:#028090;cursor:pointer;font-weight:600">View all 67 residents</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Right: Community breakdown -->
+    <div>
+      <div class="panel" style="margin-bottom:12px;">
+        <div class="panel-hdr">
+          <div>
+            <div class="panel-title">By Community</div>
+            <div class="panel-sub">Highest leakage this month</div>
+          </div>
+        </div>
+        <div>
+          <div class="community-row active">
+            <div class="comm-info">
+              <div class="comm-name">Evergreen at Cedar Creek</div>
+              <div class="comm-sub">18 residents affected &nbsp;·&nbsp; New community</div>
+              <div class="prog-bar"><div class="prog-fill" style="width:68%;background:#EF4444;"></div></div>
+            </div>
+            <div class="comm-amount red">$74,210</div>
+          </div>
+          <div class="community-row">
+            <div class="comm-info">
+              <div class="comm-name">Evergreen at Maplewood</div>
+              <div class="comm-sub">12 residents affected</div>
+              <div class="prog-bar"><div class="prog-fill" style="width:45%;background:#D97706;"></div></div>
+            </div>
+            <div class="comm-amount amber">$48,890</div>
+          </div>
+          <div class="community-row">
+            <div class="comm-info">
+              <div class="comm-name">Evergreen at Willowbrook</div>
+              <div class="comm-sub">8 residents affected &nbsp;·&nbsp; New community</div>
+              <div class="prog-bar"><div class="prog-fill" style="width:38%;background:#D97706;"></div></div>
+            </div>
+            <div class="comm-amount amber">$39,640</div>
+          </div>
+          <div class="community-row">
+            <div class="comm-info">
+              <div class="comm-name">Evergreen at Lakewood</div>
+              <div class="comm-sub">7 residents affected</div>
+              <div class="prog-bar"><div class="prog-fill" style="width:26%;background:#64748B;"></div></div>
+            </div>
+            <div class="comm-amount" style="color:#475569;font-weight:700;">$28,410</div>
+          </div>
+          <div class="community-row">
+            <div class="comm-info">
+              <div class="comm-name">Evergreen at Lakeview</div>
+              <div class="comm-sub">6 residents affected</div>
+              <div class="prog-bar"><div class="prog-fill" style="width:21%;background:#64748B;"></div></div>
+            </div>
+            <div class="comm-amount" style="color:#475569;font-weight:700;">$22,180</div>
+          </div>
+          <div style="text-align:center;padding:8px;font-size:10px;color:#94A3B8;">
+            9 more communities &nbsp;·&nbsp; <span style="color:#028090;cursor:pointer;">See all</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-title">This Month Summary</div>
+        </div>
+        <div class="sidebar-summary">
+          <div class="sum-item">
+            <span class="sum-lbl">Leakage detected</span>
+            <span class="sum-val red">$247,391</span>
+          </div>
+          <div class="sum-item">
+            <span class="sum-lbl">Already resolved</span>
+            <span class="sum-val green">$189,240</span>
+          </div>
+          <div class="sum-item">
+            <span class="sum-lbl">Pending review</span>
+            <span class="sum-val amber">$58,151</span>
+          </div>
+          <div style="height:1px;background:#E2E8F0;margin:8px 0;"></div>
+          <div class="sum-item">
+            <span class="sum-lbl">YTD recovered</span>
+            <span class="sum-val green">$189,240</span>
+          </div>
+          <div class="sum-item">
+            <span class="sum-lbl">Annual run rate</span>
+            <span class="sum-val navy">$2.97M</span>
+          </div>
+          <div style="margin-top:10px;">
+            <button class="btn btn-success" style="width:100%;">Send Report to Finance Team</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="powered">Powered by Tayana Intelligence Platform &nbsp;|&nbsp; Data sourced from PointClickCare &nbsp;·&nbsp; No billing changes made automatically &nbsp;·&nbsp; All corrections require human approval</div>
+
+</body>
+</html>
