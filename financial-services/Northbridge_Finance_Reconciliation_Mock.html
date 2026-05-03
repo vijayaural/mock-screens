@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Northbridge Capital Group | Finance Intelligence — Reconciliation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1A2F5A;
+    --navy-light: #243B6E;
+    --bg: #F0F4F9;
+    --bg-white: #FFFFFF;
+    --bg-row-alt: #F7FAFD;
+    --border: #DCE5F0;
+    --border-dark: #C4D3E6;
+    --teal: #0D7A6B;
+    --teal-light: #E6F5F3;
+    --blue: #1D4ED8;
+    --blue-light: #EFF4FF;
+    --amber: #B45309;
+    --amber-bg: #FEF3C7;
+    --amber-border: #FCD34D;
+    --red: #DC2626;
+    --red-bg: #FEF2F2;
+    --red-border: #FECACA;
+    --green: #059669;
+    --green-bg: #ECFDF5;
+    --green-border: #A7F3D0;
+    --text-primary: #0F1E38;
+    --text-secondary: #4A6380;
+    --text-muted: #8BA3BE;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text-primary);
+    min-width: 1440px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* ── TOP NAV ── */
+  .top-nav {
+    height: 54px;
+    background: var(--navy);
+    display: flex; align-items: center;
+    padding: 0 28px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand { display: flex; align-items: center; gap: 12px; flex: 1; }
+  .brand-logo {
+    width: 30px; height: 30px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px; font-weight: 500;
+    color: white;
+  }
+  .brand-name { font-size: 14px; font-weight: 600; color: white; letter-spacing: -0.01em; }
+  .brand-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 12px; }
+  .brand-module { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .nav-right { display: flex; align-items: center; gap: 20px; }
+  .nav-sync {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+  }
+  .nav-alert {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(220, 38, 38, 0.15);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px; color: #FCA5A5;
+    cursor: pointer;
+  }
+  .nav-user { display: flex; align-items: center; gap: 8px; }
+  .user-av {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: white;
+  }
+  .user-label { display: flex; flex-direction: column; }
+  .user-nm { font-size: 12px; font-weight: 500; color: white; }
+  .user-rl { font-size: 10px; color: rgba(255,255,255,0.5); }
+
+  /* ── SUB-NAV ── */
+  .sub-nav {
+    height: 42px;
+    background: var(--navy-light);
+    display: flex; align-items: flex-end;
+    padding: 0 28px;
+    border-bottom: none;
+  }
+  .sub-tab {
+    padding: 0 18px 10px;
+    font-size: 12px; font-weight: 400;
+    color: rgba(255,255,255,0.5);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .sub-tab.active {
+    color: white;
+    border-bottom-color: #5DADE2;
+    font-weight: 500;
+  }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    height: 48px;
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 28px; gap: 12px;
+  }
+  .filter-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+  .filter-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border-dark);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px; font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .filter-chip .chip-val { color: var(--blue); }
+  .filter-chip-arrow { font-size: 10px; color: var(--text-muted); }
+  .filter-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+  .filter-spacer { flex: 1; }
+  .btn-primary {
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 12px; font-weight: 500;
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+  .btn-secondary {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-dark);
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+
+  /* ── KPI STRIP ── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 20px 28px;
+  }
+  .kpi-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .kpi-card.teal::before { background: var(--teal); }
+  .kpi-card.blue::before { background: var(--blue); }
+  .kpi-card.amber::before { background: #D97706; }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-label {
+    font-size: 11px; font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 26px; font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .kpi-sub strong { font-weight: 600; }
+  .kpi-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 4px;
+    margin-top: 6px;
+  }
+  .kpi-badge.positive { background: var(--green-bg); color: var(--green); }
+  .kpi-badge.warning { background: var(--amber-bg); color: var(--amber); }
+  .kpi-badge.alert { background: var(--red-bg); color: var(--red); }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px 12px;
+  }
+  .section-title {
+    font-size: 14px; font-weight: 600;
+    color: var(--text-primary);
+  }
+  .section-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .section-actions { display: flex; gap: 8px; }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 0 28px;
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead tr {
+    background: var(--bg);
+    border-bottom: 2px solid var(--border-dark);
+  }
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px; font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  th:first-child { padding-left: 20px; }
+  th:last-child { padding-right: 20px; text-align: center; }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: var(--bg-row-alt); }
+  tbody tr:last-child { border-bottom: none; }
+  td {
+    padding: 13px 14px;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  td:first-child { padding-left: 20px; font-weight: 500; }
+  td:last-child { padding-right: 20px; text-align: center; }
+
+  /* Row state overrides */
+  tr.row-overdue {
+    background: var(--red-bg);
+  }
+  tr.row-overdue:hover { background: #FEE2E2; }
+  tr.row-amber { background: #FFFBEB; }
+  tr.row-amber:hover { background: #FEF9EC; }
+
+  .cell-period { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); }
+  .cell-entries { font-family: var(--mono); font-size: 13px; }
+
+  /* Match Progress */
+  .match-cell { display: flex; flex-direction: column; gap: 4px; }
+  .match-numbers { display: flex; align-items: baseline; gap: 4px; }
+  .match-count { font-family: var(--mono); font-size: 13px; font-weight: 500; }
+  .match-pct { font-size: 11px; color: var(--text-muted); }
+  .match-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; width: 100%; }
+  .match-fill { height: 100%; border-radius: 2px; }
+  .match-fill.high { background: var(--teal); }
+  .match-fill.med { background: #F59E0B; }
+  .match-fill.low { background: var(--red); }
+
+  .cell-disc { font-family: var(--mono); font-size: 13px; font-weight: 500; }
+  .cell-disc.warn { color: var(--amber); }
+  .cell-disc.alert { color: var(--red); font-weight: 600; }
+
+  /* Status Pill */
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .pill-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .status-pill.reviewed { background: var(--green-bg); color: var(--green); }
+  .status-pill.reviewed .pill-dot { background: var(--green); }
+  .status-pill.in-review { background: var(--blue-light); color: var(--blue); }
+  .status-pill.in-review .pill-dot { background: var(--blue); }
+  .status-pill.overdue { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  .status-pill.overdue .pill-dot { background: var(--red); }
+
+  .btn-view {
+    background: none;
+    border: 1px solid var(--border-dark);
+    border-radius: 5px;
+    padding: 4px 12px;
+    font-size: 11px; font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+  .btn-view.urgent { border-color: var(--red-border); color: var(--red); }
+
+  /* ── TOTALS ROW ── */
+  tr.totals-row {
+    background: var(--bg);
+    border-top: 2px solid var(--border-dark);
+  }
+  tr.totals-row td { font-weight: 600; color: var(--text-primary); }
+
+  /* ── OVERDUE ALERT BANNER ── */
+  .alert-banner {
+    margin: 0 28px 0;
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+    border-radius: 8px 8px 0 0;
+    border-bottom: none;
+    padding: 10px 18px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px;
+  }
+  .alert-icon { font-size: 14px; }
+  .alert-text { flex: 1; color: var(--red); font-weight: 500; }
+  .alert-action {
+    font-size: 11px; font-weight: 600;
+    color: var(--red);
+    border: 1px solid var(--red-border);
+    background: white;
+    border-radius: 5px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: var(--sans);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    margin: 20px 28px 0;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 24px;
+  }
+  .footer-src { font-size: 11px; color: var(--text-muted); }
+  .footer-src span { color: var(--text-secondary); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-brand">
+    <div class="brand-logo">NC</div>
+    <span class="brand-name">Northbridge Capital Group</span>
+    <div class="brand-sep"></div>
+    <span class="brand-module">Finance Intelligence</span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-sync">Last run: May 2, 2026 · 3:47 AM ET</span>
+    <div class="nav-alert">⚠ 1 account overdue</div>
+    <div class="nav-user">
+      <div class="user-av">EM</div>
+      <div class="user-label">
+        <span class="user-nm">Ellen Marsh</span>
+        <span class="user-rl">Chief Financial Officer</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- SUB-NAV -->
+<div class="sub-nav">
+  <div class="sub-tab">Overview</div>
+  <div class="sub-tab active">Reconciliation</div>
+  <div class="sub-tab">Close Report</div>
+  <div class="sub-tab">FP&amp;A</div>
+  <div class="sub-tab">Audit Log</div>
+  <div class="sub-tab">Settings</div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <span class="filter-label">Period</span>
+  <div class="filter-chip">
+    <span class="chip-val">April 2026</span>
+    <span class="filter-chip-arrow">▾</span>
+  </div>
+  <div class="filter-divider"></div>
+  <span class="filter-label">Status</span>
+  <div class="filter-chip">
+    <span class="chip-val">All</span>
+    <span class="filter-chip-arrow">▾</span>
+  </div>
+  <div class="filter-divider"></div>
+  <span class="filter-label">Account Type</span>
+  <div class="filter-chip">
+    <span class="chip-val">All Categories</span>
+    <span class="filter-chip-arrow">▾</span>
+  </div>
+  <div class="filter-spacer"></div>
+  <button class="btn-secondary">Export CSV</button>
+  <button class="btn-secondary">Schedule Report</button>
+  <button class="btn-primary">Generate Report</button>
+</div>
+
+<!-- KPI STRIP -->
+<div class="kpi-strip">
+  <div class="kpi-card teal">
+    <div class="kpi-label">Auto-Matched</div>
+    <div class="kpi-value">1,184</div>
+    <div class="kpi-sub">of <strong>1,247</strong> total entries · 94.9%</div>
+    <div class="kpi-badge positive">↑ +2.3% vs Mar 2026</div>
+  </div>
+  <div class="kpi-card amber">
+    <div class="kpi-label">Exceptions Flagged</div>
+    <div class="kpi-value">63</div>
+    <div class="kpi-sub">Require human review · $127,340 total</div>
+    <div class="kpi-badge warning">1 category overdue</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="kpi-label">Time Saved vs. Manual</div>
+    <div class="kpi-value">3.1 days</div>
+    <div class="kpi-sub">Est. 24.8 hrs recovered this period</div>
+    <div class="kpi-badge positive">Baseline: 3.5–4.0 day manual process</div>
+  </div>
+  <div class="kpi-card blue">
+    <div class="kpi-label">Period Close Outlook</div>
+    <div class="kpi-value">11.4 hrs</div>
+    <div class="kpi-sub">Projected vs. <strong>3.8 day</strong> prior period close</div>
+    <div class="kpi-badge warning">Blocked: Oper. Expenses overdue</div>
+  </div>
+</div>
+
+<!-- ALERT BANNER -->
+<div class="alert-banner">
+  <span class="alert-icon">⚠</span>
+  <span class="alert-text"><strong>Action required:</strong> Operating Expenses reconciliation is overdue. 30 exceptions totaling $56,141 have not been reviewed. Period close is blocked until this category is cleared. Assigned to: Michelle Okafor, Controller.</span>
+  <button class="alert-action">Assign &amp; Notify</button>
+</div>
+
+<!-- TABLE -->
+<div class="section-header" style="padding-top: 0; padding-bottom: 8px; margin-top: 0;">
+</div>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Account Category</th>
+        <th>Period</th>
+        <th>Total Entries</th>
+        <th>Auto-Matched</th>
+        <th>Exceptions</th>
+        <th>Discrepancy Value</th>
+        <th>Assigned To</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Row 1: Reviewed -->
+      <tr>
+        <td>Cash &amp; Equivalents</td>
+        <td class="cell-period">Apr 2026</td>
+        <td class="cell-entries">312</td>
+        <td>
+          <div class="match-cell">
+            <div class="match-numbers">
+              <span class="match-count">308</span>
+              <span class="match-pct">(98.7%)</span>
+            </div>
+            <div class="match-bar"><div class="match-fill high" style="width:98.7%"></div></div>
+          </div>
+        </td>
+        <td class="cell-entries" style="color: #059669; font-weight: 500;">4</td>
+        <td class="cell-disc">$6,218</td>
+        <td style="color: var(--text-secondary); font-size:12px;">Michelle Okafor</td>
+        <td><span class="status-pill reviewed"><div class="pill-dot"></div>Reviewed</span></td>
+        <td><button class="btn-view">View</button></td>
+      </tr>
+      <!-- Row 2: In Review amber -->
+      <tr class="row-amber">
+        <td>Accounts Receivable</td>
+        <td class="cell-period">Apr 2026</td>
+        <td class="cell-entries">289</td>
+        <td>
+          <div class="match-cell">
+            <div class="match-numbers">
+              <span class="match-count">271</span>
+              <span class="match-pct">(93.8%)</span>
+            </div>
+            <div class="match-bar"><div class="match-fill med" style="width:93.8%"></div></div>
+          </div>
+        </td>
+        <td class="cell-entries" style="color: #D97706; font-weight: 600;">18</td>
+        <td class="cell-disc warn">$42,491</td>
+        <td style="color: var(--text-secondary); font-size:12px;">Lucia Reyes</td>
+        <td><span class="status-pill in-review"><div class="pill-dot"></div>In Review</span></td>
+        <td><button class="btn-view">View</button></td>
+      </tr>
+      <!-- Row 3: Reviewed -->
+      <tr>
+        <td>Investments &amp; Securities</td>
+        <td class="cell-period">Apr 2026</td>
+        <td class="cell-entries">318</td>
+        <td>
+          <div class="match-cell">
+            <div class="match-numbers">
+              <span class="match-count">316</span>
+              <span class="match-pct">(99.4%)</span>
+            </div>
+            <div class="match-bar"><div class="match-fill high" style="width:99.4%"></div></div>
+          </div>
+        </td>
+        <td class="cell-entries" style="color: #059669; font-weight: 500;">2</td>
+        <td class="cell-disc">$3,160</td>
+        <td style="color: var(--text-secondary); font-size:12px;">Raj Subramaniam</td>
+        <td><span class="status-pill reviewed"><div class="pill-dot"></div>Reviewed</span></td>
+        <td><button class="btn-view">View</button></td>
+      </tr>
+      <!-- Row 4: In Review -->
+      <tr class="row-amber">
+        <td>Intercompany</td>
+        <td class="cell-period">Apr 2026</td>
+        <td class="cell-entries">156</td>
+        <td>
+          <div class="match-cell">
+            <div class="match-numbers">
+              <span class="match-count">147</span>
+              <span class="match-pct">(94.2%)</span>
+            </div>
+            <div class="match-bar"><div class="match-fill med" style="width:94.2%"></div></div>
+          </div>
+        </td>
+        <td class="cell-entries" style="color: #D97706; font-weight: 600;">9</td>
+        <td class="cell-disc warn">$19,330</td>
+        <td style="color: var(--text-secondary); font-size:12px;">Michelle Okafor</td>
+        <td><span class="status-pill in-review"><div class="pill-dot"></div>In Review</span></td>
+        <td><button class="btn-view">View</button></td>
+      </tr>
+      <!-- Row 5: OVERDUE — RED -->
+      <tr class="row-overdue">
+        <td style="font-weight:700; color: var(--red);">⚠ Operating Expenses</td>
+        <td class="cell-period">Apr 2026</td>
+        <td class="cell-entries">172</td>
+        <td>
+          <div class="match-cell">
+            <div class="match-numbers">
+              <span class="match-count" style="color: var(--red);">142</span>
+              <span class="match-pct">(82.6%)</span>
+            </div>
+            <div class="match-bar"><div class="match-fill low" style="width:82.6%"></div></div>
+          </div>
+        </td>
+        <td class="cell-entries" style="color: var(--red); font-weight: 700;">30</td>
+        <td class="cell-disc alert">$56,141</td>
+        <td style="color: var(--red); font-size:12px; font-weight:600;">Michelle Okafor</td>
+        <td><span class="status-pill overdue"><div class="pill-dot"></div>Overdue</span></td>
+        <td><button class="btn-view urgent">Review Now</button></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr class="totals-row">
+        <td>Total — April 2026</td>
+        <td class="cell-period">—</td>
+        <td class="cell-entries" style="font-family: var(--mono);">1,247</td>
+        <td>
+          <div class="match-cell">
+            <div class="match-numbers">
+              <span class="match-count">1,184</span>
+              <span class="match-pct">(94.9%)</span>
+            </div>
+            <div class="match-bar"><div class="match-fill high" style="width:94.9%"></div></div>
+          </div>
+        </td>
+        <td class="cell-entries" style="font-family: var(--mono); color: var(--amber); font-weight:700;">63</td>
+        <td class="cell-disc warn" style="font-size:13px; font-weight:700;">$127,340</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-src">Data sources: <span>FIS Core Banking</span></span>
+  <span class="footer-src">GL: <span>NetSuite</span></span>
+  <span class="footer-src">Payroll: <span>Workday</span></span>
+  <span class="footer-src">Reconciliation engine last run: <span>May 2, 2026 · 3:47 AM ET</span></span>
+  <span style="flex:1"></span>
+  <span class="footer-src">Northbridge Capital Group — Finance Intelligence · Internal Use Only</span>
+</footer>
+
+</body>
+</html>

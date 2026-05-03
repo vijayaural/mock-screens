@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Northbridge Capital Group | Compliance Intelligence — Regulatory Monitor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Roboto+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --slate: #1E2D45;
+    --slate-mid: #263652;
+    --bg: #F3F6FB;
+    --bg-white: #FFFFFF;
+    --bg-alt: #F8FAFD;
+    --border: #DDE5F0;
+    --border-dark: #C5D3E8;
+    --red: #C0392B;
+    --red-bg: #FEF2F2;
+    --red-border: #FECACA;
+    --red-mid: #DC2626;
+    --amber: #92400E;
+    --amber-bg: #FFFBEB;
+    --amber-border: #FDE68A;
+    --amber-mid: #D97706;
+    --green: #065F46;
+    --green-bg: #ECFDF5;
+    --green-border: #A7F3D0;
+    --green-mid: #059669;
+    --blue: #1E3A8A;
+    --blue-bg: #EFF6FF;
+    --blue-border: #BFDBFE;
+    --blue-mid: #2563EB;
+    --purple: #4C1D95;
+    --purple-bg: #F5F3FF;
+    --purple-mid: #7C3AED;
+    --text-primary: #0D1B2E;
+    --text-secondary: #4A6082;
+    --text-muted: #8DA2BE;
+    --sans: 'Lato', system-ui, sans-serif;
+    --mono: 'Roboto Mono', monospace;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text-primary);
+    min-width: 1440px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* ── TOP NAV ── */
+  .top-nav {
+    height: 54px;
+    background: var(--slate);
+    display: flex; align-items: center;
+    padding: 0 28px;
+    position: sticky; top: 0; z-index: 200;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; flex: 1; }
+  .brand-sq {
+    width: 30px; height: 30px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    color: white; font-family: var(--sans);
+  }
+  .brand-nm { font-size: 14px; font-weight: 700; color: white; letter-spacing: -0.01em; }
+  .brand-sep { width: 1px; height: 18px; background: rgba(255,255,255,0.2); margin: 0 12px; }
+  .brand-mod { font-size: 12px; font-weight: 400; color: rgba(255,255,255,0.6); }
+  .nav-r { display: flex; align-items: center; gap: 18px; }
+  .badge-overdue {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(192, 57, 43, 0.2);
+    border: 1px solid rgba(192, 57, 43, 0.5);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px; font-weight: 700;
+    color: #FCA5A5;
+    animation: throb 2.5s ease-in-out infinite;
+  }
+  @keyframes throb {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0); }
+    50% { box-shadow: 0 0 0 4px rgba(192, 57, 43, 0.15); }
+  }
+  .nav-sync { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.4); }
+  .u-pill { display: flex; align-items: center; gap: 8px; }
+  .u-av {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: white;
+  }
+  .u-info { display: flex; flex-direction: column; }
+  .u-nm { font-size: 12px; font-weight: 700; color: white; }
+  .u-rl { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 400; }
+
+  /* ── SUB-NAV ── */
+  .sub-nav {
+    height: 42px;
+    background: var(--slate-mid);
+    display: flex; align-items: flex-end;
+    padding: 0 28px;
+  }
+  .stab {
+    padding: 0 16px 10px;
+    font-size: 12px; font-weight: 400;
+    color: rgba(255,255,255,0.45);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+  }
+  .stab.active { color: white; border-bottom-color: #60A5FA; font-weight: 700; }
+
+  /* ── ALERT BANNER ── */
+  .alert-banner {
+    background: var(--red-bg);
+    border-bottom: 2px solid var(--red-border);
+    padding: 10px 28px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .alert-icon-wrap {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--red-mid);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: white; flex-shrink: 0;
+  }
+  .alert-body { flex: 1; }
+  .alert-title { font-size: 13px; font-weight: 700; color: var(--red); }
+  .alert-desc { font-size: 12px; color: var(--red-mid); margin-top: 1px; }
+  .alert-cta {
+    background: var(--red-mid);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    font-family: var(--sans);
+    white-space: nowrap;
+  }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    height: 48px;
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 28px; gap: 10px;
+  }
+  .fl { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+  .fc {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--bg);
+    border: 1px solid var(--border-dark);
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px; color: var(--text-primary);
+    cursor: pointer;
+  }
+  .fc .fv { font-weight: 700; }
+  .fsep { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
+  .fsp { flex: 1; }
+  .fbn {
+    background: var(--bg);
+    border: 1px solid var(--border-dark);
+    border-radius: 5px;
+    padding: 6px 14px;
+    font-size: 12px; color: var(--text-secondary);
+    cursor: pointer; font-family: var(--sans);
+  }
+  .fbp {
+    background: var(--slate);
+    border: none;
+    border-radius: 5px;
+    padding: 6px 14px;
+    font-size: 12px; font-weight: 700;
+    color: white; cursor: pointer; font-family: var(--sans);
+  }
+
+  /* ── STATS STRIP ── */
+  .stats-strip {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    padding: 0 28px;
+  }
+  .stat-item {
+    padding: 14px 24px 14px 0;
+    border-right: 1px solid var(--border);
+    margin-right: 24px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .stat-item:last-child { border-right: none; }
+  .si-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+  .si-val { font-size: 22px; font-weight: 900; color: var(--text-primary); line-height: 1.1; }
+  .si-val.red { color: var(--red); }
+  .si-val.amber { color: var(--amber-mid); }
+  .si-val.green { color: var(--green-mid); }
+  .si-sub { font-size: 11px; color: var(--text-muted); }
+
+  /* ── MAIN LAYOUT ── */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 0;
+    min-height: calc(100vh - 220px);
+  }
+
+  /* ── TABLE AREA ── */
+  .table-area { padding: 20px 0 20px 28px; overflow-y: auto; }
+  .table-wrap {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr {
+    background: var(--bg);
+    border-bottom: 2px solid var(--border-dark);
+  }
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 10px; font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    white-space: nowrap;
+  }
+  th:first-child { padding-left: 18px; }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  tbody tr:hover { background: var(--bg-alt); }
+  tbody tr.row-selected { background: var(--blue-bg); border-left: 3px solid var(--blue-mid); }
+  tbody tr.row-overdue { background: var(--red-bg); }
+  tbody tr.row-overdue:hover { background: #FEE2E2; }
+  tbody tr:last-child { border-bottom: none; }
+  td { padding: 12px 14px; font-size: 12px; color: var(--text-primary); vertical-align: middle; }
+  td:first-child { padding-left: 18px; }
+
+  .src-badge {
+    display: inline-flex;
+    font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .src-fincen { background: #FEF3C7; color: #92400E; }
+  .src-cfpb { background: #EFF6FF; color: #1E40AF; }
+  .src-occ { background: #F0FDF4; color: #065F46; }
+  .src-fed { background: #F5F3FF; color: #4C1D95; }
+  .src-ffiec { background: #FFF7ED; color: #9A3412; }
+
+  .cat-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 7px; border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border-dark);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .policy-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .assigned { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+  .due-date { font-family: var(--mono); font-size: 11px; }
+  .due-date.overdue { color: var(--red); font-weight: 700; }
+  .due-date.soon { color: var(--amber-mid); }
+  .due-date.ok { color: var(--text-secondary); }
+
+  /* Status Pills */
+  .sp {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 700;
+    padding: 3px 9px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .sp-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .sp.overdue { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  .sp.overdue .sp-dot { background: var(--red); }
+  .sp.in-review { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+  .sp.in-review .sp-dot { background: var(--amber-mid); }
+  .sp.signed-off { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .sp.signed-off .sp-dot { background: var(--green-mid); }
+  .sp.pending { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border-dark); }
+  .sp.pending .sp-dot { background: var(--text-muted); }
+  .sp.assigned { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .sp.assigned .sp-dot { background: var(--blue-mid); }
+
+  .update-title { font-size: 12px; font-weight: 700; color: var(--text-primary); line-height: 1.35; }
+  .update-title.red { color: var(--red); }
+  .update-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+  /* ── SIDE PANEL ── */
+  .side-panel {
+    border-left: 1px solid var(--border);
+    background: var(--bg-white);
+    display: flex; flex-direction: column;
+    position: sticky; top: 96px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+  .sp-header {
+    padding: 16px 18px;
+    border-bottom: 2px solid var(--red-border);
+    background: var(--red-bg);
+  }
+  .sp-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .sp-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--red); }
+  .sp-status-badge {
+    font-size: 10px; font-weight: 700;
+    background: var(--red);
+    color: white;
+    padding: 3px 8px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .sp-title { font-size: 14px; font-weight: 900; color: var(--text-primary); line-height: 1.3; }
+  .sp-src { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+
+  .sp-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
+  .sp-row { display: flex; flex-direction: column; gap: 3px; }
+  .sp-row-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+  .sp-row-val { font-size: 12px; color: var(--text-primary); font-weight: 400; }
+  .sp-row-val.red { color: var(--red); font-weight: 700; font-family: var(--mono); }
+  .sp-row-val.bold { font-weight: 700; }
+  .sp-divider { height: 1px; background: var(--border); }
+  .policy-list { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
+  .policy-item {
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--border-dark);
+    border-radius: 5px;
+    padding: 5px 10px;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+  .sp-summary {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+  }
+  .sp-actions { padding: 14px 18px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
+  .spa-primary {
+    background: var(--red-mid);
+    color: white;
+    border: none; border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; text-align: center; font-family: var(--sans);
+  }
+  .spa-secondary {
+    background: var(--bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-dark); border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 12px;
+    cursor: pointer; text-align: center; font-family: var(--sans);
+  }
+
+  /* ── FOOTER ── */
+  .page-footer {
+    padding: 14px 28px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 22px;
+    background: var(--bg-white);
+  }
+  .pf-item { font-size: 11px; color: var(--text-muted); }
+  .pf-item span { color: var(--text-secondary); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="brand">
+    <div class="brand-sq">NC</div>
+    <span class="brand-nm">Northbridge Capital Group</span>
+    <div class="brand-sep"></div>
+    <span class="brand-mod">Compliance Intelligence</span>
+  </div>
+  <div class="nav-r">
+    <div class="badge-overdue">⚠ 2 items overdue</div>
+    <span class="nav-sync">Last scan: May 2, 2026 · 6:00 AM ET</span>
+    <div class="u-pill">
+      <div class="u-av">EM</div>
+      <div class="u-info">
+        <span class="u-nm">Ellen Marsh</span>
+        <span class="u-rl">Chief Financial Officer</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- SUB-NAV -->
+<div class="sub-nav">
+  <div class="stab">Overview</div>
+  <div class="stab active">Regulatory Monitor</div>
+  <div class="stab">Policy Library</div>
+  <div class="stab">AML / BSA</div>
+  <div class="stab">Examination Prep</div>
+  <div class="stab">Audit Trail</div>
+</div>
+
+<!-- ALERT BANNER -->
+<div class="alert-banner">
+  <div class="alert-icon-wrap">⚠</div>
+  <div class="alert-body">
+    <div class="alert-title">2 items are overdue for compliance review and are blocking sign-off.</div>
+    <div class="alert-desc">FinCEN AML Transaction Monitoring Rule is 3 days past its review deadline (assigned: Patricia Mensah). FinCEN CDD Beneficial Ownership Clarification is 7 days past its deadline (assigned: Patricia Mensah). Escalation is recommended.</div>
+  </div>
+  <button class="alert-cta">Escalate &amp; Reassign</button>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <span class="fl">Source</span>
+  <div class="fc"><span class="fv">All Sources</span> <span style="font-size:10px;color:var(--text-muted)">▾</span></div>
+  <div class="fsep"></div>
+  <span class="fl">Status</span>
+  <div class="fc"><span class="fv">All</span> <span style="font-size:10px;color:var(--text-muted)">▾</span></div>
+  <div class="fsep"></div>
+  <span class="fl">Assigned To</span>
+  <div class="fc"><span class="fv">All Staff</span> <span style="font-size:10px;color:var(--text-muted)">▾</span></div>
+  <div class="fsep"></div>
+  <span class="fl">Date Range</span>
+  <div class="fc"><span class="fv">Last 30 Days</span> <span style="font-size:10px;color:var(--text-muted)">▾</span></div>
+  <div class="fsp"></div>
+  <button class="fbn">Export Report</button>
+  <button class="fbp">Run Scan Now</button>
+</div>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stat-item">
+    <span class="si-label">Monitored Sources</span>
+    <span class="si-val">14</span>
+    <span class="si-sub">Fed, FinCEN, CFPB, OCC, FFIEC +9</span>
+  </div>
+  <div class="stat-item">
+    <span class="si-label">Updates This Month</span>
+    <span class="si-val">23</span>
+    <span class="si-sub">+4 vs. April baseline</span>
+  </div>
+  <div class="stat-item">
+    <span class="si-label">Pending Review</span>
+    <span class="si-val amber">7</span>
+    <span class="si-sub">Across 4 staff members</span>
+  </div>
+  <div class="stat-item">
+    <span class="si-label">Signed Off</span>
+    <span class="si-val green">14</span>
+    <span class="si-sub">This period</span>
+  </div>
+  <div class="stat-item">
+    <span class="si-label">Overdue</span>
+    <span class="si-val red">2</span>
+    <span class="si-sub">Require immediate action</span>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+
+  <!-- TABLE AREA -->
+  <div class="table-area">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px">Source</th>
+            <th>Update Title</th>
+            <th style="width:130px">Category</th>
+            <th style="width:90px">Policies</th>
+            <th style="width:140px">Assigned To</th>
+            <th style="width:100px">Due Date</th>
+            <th style="width:110px">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- ROW 1: OVERDUE — SELECTED (shown in side panel) -->
+          <tr class="row-overdue row-selected">
+            <td><span class="src-badge src-fincen">FinCEN</span></td>
+            <td>
+              <div class="update-title red">AML Transaction Monitoring Rule — Revised Thresholds</div>
+              <div class="update-sub">Threshold updates for SAR filing and automated monitoring systems · Effective June 1, 2026</div>
+            </td>
+            <td><span class="cat-tag">AML / BSA</span></td>
+            <td class="policy-count">3 policies</td>
+            <td class="assigned">Patricia Mensah</td>
+            <td class="due-date overdue">Apr 29 ⚠ +3d</td>
+            <td><span class="sp overdue"><div class="sp-dot"></div>Overdue</span></td>
+          </tr>
+
+          <!-- ROW 2: OVERDUE -->
+          <tr class="row-overdue">
+            <td><span class="src-badge src-fincen">FinCEN</span></td>
+            <td>
+              <div class="update-title red">CDD Rule — Beneficial Ownership Clarification</div>
+              <div class="update-sub">Beneficial ownership identification requirements for legal entity customers · Effective May 15, 2026</div>
+            </td>
+            <td><span class="cat-tag">AML / BSA</span></td>
+            <td class="policy-count">4 policies</td>
+            <td class="assigned">Patricia Mensah</td>
+            <td class="due-date overdue">Apr 25 ⚠ +7d</td>
+            <td><span class="sp overdue"><div class="sp-dot"></div>Overdue</span></td>
+          </tr>
+
+          <!-- ROW 3: IN REVIEW -->
+          <tr>
+            <td><span class="src-badge src-cfpb">CFPB</span></td>
+            <td>
+              <div class="update-title">Fair Lending Examination Guidance Update</div>
+              <div class="update-sub">Updated supervisory expectations for fair lending analysis in mortgage origination · Effective July 1, 2026</div>
+            </td>
+            <td><span class="cat-tag">Fair Lending</span></td>
+            <td class="policy-count">5 policies</td>
+            <td class="assigned">Raj Subramaniam</td>
+            <td class="due-date soon">May 5</td>
+            <td><span class="sp in-review"><div class="sp-dot"></div>In Review</span></td>
+          </tr>
+
+          <!-- ROW 4: IN REVIEW -->
+          <tr>
+            <td><span class="src-badge src-occ">OCC</span></td>
+            <td>
+              <div class="update-title">Supervisory Guidance on Third-Party Risk Management</div>
+              <div class="update-sub">Updated framework for managing risks associated with third-party relationships · Effective Aug 1, 2026</div>
+            </td>
+            <td><span class="cat-tag">Risk Management</span></td>
+            <td class="policy-count">2 policies</td>
+            <td class="assigned">Amara Diallo</td>
+            <td class="due-date soon">May 8</td>
+            <td><span class="sp in-review"><div class="sp-dot"></div>In Review</span></td>
+          </tr>
+
+          <!-- ROW 5: SIGNED OFF -->
+          <tr>
+            <td><span class="src-badge src-fed">Fed Reserve</span></td>
+            <td>
+              <div class="update-title">Capital Adequacy — Basel III Endgame Implementation</div>
+              <div class="update-sub">Final rule on revised capital requirements for covered institutions · Phased 2026–2028</div>
+            </td>
+            <td><span class="cat-tag">Capital</span></td>
+            <td class="policy-count">1 policy</td>
+            <td class="assigned">James Whitmore</td>
+            <td class="due-date ok">Apr 20 ✓</td>
+            <td><span class="sp signed-off"><div class="sp-dot"></div>Signed Off</span></td>
+          </tr>
+
+          <!-- ROW 6: PENDING -->
+          <tr>
+            <td><span class="src-badge src-cfpb">CFPB</span></td>
+            <td>
+              <div class="update-title">TILA-RESPA Integrated Disclosure — Revised Tolerances</div>
+              <div class="update-sub">Revised cure and tolerance guidance for closing disclosure errors · Effective Sep 1, 2026</div>
+            </td>
+            <td><span class="cat-tag">Lending</span></td>
+            <td class="policy-count">7 policies</td>
+            <td class="assigned">Raj Subramaniam</td>
+            <td class="due-date ok">May 15</td>
+            <td><span class="sp pending"><div class="sp-dot"></div>Pending</span></td>
+          </tr>
+
+          <!-- ROW 7: PENDING -->
+          <tr>
+            <td><span class="src-badge src-ffiec">FFIEC</span></td>
+            <td>
+              <div class="update-title">Cybersecurity Examination Procedures — 2026 Update</div>
+              <div class="update-sub">Revised examination procedures covering cloud security, vendor management, and incident response · Q3 2026</div>
+            </td>
+            <td><span class="cat-tag">Information Security</span></td>
+            <td class="policy-count">3 policies</td>
+            <td class="assigned">Amara Diallo</td>
+            <td class="due-date ok">May 20</td>
+            <td><span class="sp pending"><div class="sp-dot"></div>Pending</span></td>
+          </tr>
+
+          <!-- ROW 8: SIGNED OFF -->
+          <tr>
+            <td><span class="src-badge src-fed">Fed Reserve</span></td>
+            <td>
+              <div class="update-title">DFAST Stress Testing — 2026 Scenario Variables</div>
+              <div class="update-sub">Annual stress test scenario definitions and variable specifications for covered institutions</div>
+            </td>
+            <td><span class="cat-tag">Capital Planning</span></td>
+            <td class="policy-count">2 policies</td>
+            <td class="assigned">James Whitmore</td>
+            <td class="due-date ok">Apr 18 ✓</td>
+            <td><span class="sp signed-off"><div class="sp-dot"></div>Signed Off</span></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SIDE PANEL — Detail for selected row -->
+  <div class="side-panel">
+    <div class="sp-header">
+      <div class="sp-header-row">
+        <span class="sp-label">Selected Item — Detail</span>
+        <span class="sp-status-badge">⚠ Overdue</span>
+      </div>
+      <div class="sp-title">AML Transaction Monitoring Rule — Revised Thresholds</div>
+      <div class="sp-src">Financial Crimes Enforcement Network (FinCEN)</div>
+    </div>
+
+    <div class="sp-body">
+      <div class="sp-row">
+        <span class="sp-row-label">Source</span>
+        <span class="sp-row-val bold">Financial Crimes Enforcement Network (FinCEN)</span>
+      </div>
+      <div class="sp-row">
+        <span class="sp-row-label">Published</span>
+        <span class="sp-row-val">April 14, 2026</span>
+      </div>
+      <div class="sp-row">
+        <span class="sp-row-label">Effective Date</span>
+        <span class="sp-row-val bold">June 1, 2026</span>
+      </div>
+      <div class="sp-divider"></div>
+      <div class="sp-row">
+        <span class="sp-row-label">Review Deadline</span>
+        <span class="sp-row-val red">April 29, 2026 — OVERDUE by 3 days</span>
+      </div>
+      <div class="sp-row">
+        <span class="sp-row-label">Assigned Reviewer</span>
+        <span class="sp-row-val bold">Patricia Mensah, CCO</span>
+      </div>
+      <div class="sp-divider"></div>
+      <div class="sp-row">
+        <span class="sp-row-label">Summary</span>
+        <div class="sp-summary">FinCEN has revised the threshold values for SAR filing obligations and updated minimum requirements for automated transaction monitoring systems. Financial institutions are required to review and update their monitoring parameter documentation and submit attestations of compliance by June 1, 2026.</div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-row-label">Affected Internal Policies (3)</span>
+        <div class="policy-list">
+          <div class="policy-item">BSA-004 · SAR Filing Procedures</div>
+          <div class="policy-item">BSA-007 · Automated Monitoring System Parameters</div>
+          <div class="policy-item">Compliance-011 · FinCEN Attestation &amp; Reporting</div>
+        </div>
+      </div>
+      <div class="sp-row">
+        <span class="sp-row-label">Regulatory Category</span>
+        <span class="sp-row-val">AML / BSA — High Priority</span>
+      </div>
+    </div>
+
+    <div class="sp-actions">
+      <button class="spa-primary">Open Full Analysis</button>
+      <button class="spa-secondary">Reassign Reviewer</button>
+      <button class="spa-secondary">Mark as Reviewed</button>
+      <button class="spa-secondary">Export to PDF</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="page-footer">
+  <span class="pf-item">Regulatory sources: <span>Federal Register</span></span>
+  <span class="pf-item">Real-time feeds: <span>FinCEN, CFPB, OCC, Federal Reserve, FFIEC</span></span>
+  <span class="pf-item">Last scan: <span>May 2, 2026 · 6:00 AM ET</span></span>
+  <span style="flex:1"></span>
+  <span class="pf-item">Northbridge Capital Group — Compliance Intelligence · Internal Use Only</span>
+</div>
+
+</body>
+</html>
