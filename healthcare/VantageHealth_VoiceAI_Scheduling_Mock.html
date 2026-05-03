@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vantage Health Partners | Scheduling Voice Agent</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0A1628; color: #E2E8F0; font-size: 14px; min-width: 1440px; }
+
+  /* TOP NAV */
+  .topnav { background: #060E1B; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; height: 52px; border-bottom: 1px solid #1E3A5C; }
+  .topnav-left { display: flex; align-items: center; gap: 16px; }
+  .app-name { color: #E2E8F0; font-size: 15px; font-weight: 600; }
+  .app-name span { color: #4CC9A0; }
+  .live-pill { display: flex; align-items: center; gap: 6px; background: rgba(76,201,160,0.15); border: 1px solid rgba(76,201,160,0.4); padding: 3px 10px; border-radius: 20px; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #4CC9A0; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+  .live-text { font-size: 11px; font-weight: 700; color: #4CC9A0; letter-spacing: 0.06em; }
+  .topnav-right { display: flex; align-items: center; gap: 20px; }
+  .clock { font-family: monospace; font-size: 14px; color: #4CC9A0; }
+  .user-pill { display: flex; align-items: center; gap: 8px; }
+  .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(76,201,160,0.2); border: 1px solid #4CC9A0; display: flex; align-items: center; justify-content: center; color: #4CC9A0; font-weight: 700; font-size: 12px; }
+  .user-name { color: #CBD5E1; font-size: 13px; }
+  .user-role { color: #475569; font-size: 11px; }
+
+  /* SUB NAV */
+  .subnav { background: #0D1E35; border-bottom: 1px solid #1E3A5C; display: flex; align-items: center; padding: 0 28px; height: 40px; }
+  .subnav-tab { padding: 0 18px; height: 40px; display: flex; align-items: center; font-size: 13px; color: #475569; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .subnav-tab.active { color: #4CC9A0; border-bottom-color: #4CC9A0; }
+
+  /* ALERT BANNER */
+  .alert-banner { background: rgba(245,158,11,0.12); border-left: 3px solid #F59E0B; margin: 16px 28px 0; padding: 9px 16px; border-radius: 0 4px 4px 0; display: flex; align-items: center; justify-content: space-between; }
+  .alert-text { font-size: 13px; color: #FCD34D; }
+  .alert-text strong { font-weight: 700; }
+  .alert-action { font-size: 12px; color: #4CC9A0; font-weight: 600; cursor: pointer; }
+
+  /* STAT STRIP */
+  .stat-strip { display: flex; gap: 12px; padding: 16px 28px; }
+  .stat-card { background: #0D1E35; border: 1px solid #1E3A5C; border-radius: 8px; padding: 14px 18px; flex: 1; }
+  .stat-label { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+  .stat-value { font-size: 26px; font-weight: 700; line-height: 1; }
+  .val-green { color: #4CC9A0; }
+  .val-amber { color: #F59E0B; }
+  .val-red { color: #F87171; }
+  .val-white { color: #E2E8F0; }
+  .stat-sub { font-size: 11px; color: #475569; margin-top: 4px; }
+  .stat-trend { font-size: 11px; margin-top: 3px; }
+  .trend-good { color: #4CC9A0; }
+  .trend-bad { color: #F87171; }
+
+  /* MAIN 3-PANEL LAYOUT */
+  .three-panel { display: flex; gap: 14px; padding: 0 28px 20px; }
+
+  /* LEFT: WAITLIST QUEUE */
+  .queue-panel { width: 300px; background: #0D1E35; border: 1px solid #1E3A5C; border-radius: 8px; overflow: hidden; }
+  .panel-head { padding: 12px 16px; border-bottom: 1px solid #1E3A5C; display: flex; align-items: center; justify-content: space-between; }
+  .panel-head-title { font-size: 13px; font-weight: 600; color: #CBD5E1; }
+  .count-badge { background: rgba(76,201,160,0.2); color: #4CC9A0; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .count-badge.amber { background: rgba(245,158,11,0.2); color: #F59E0B; }
+  .q-item { padding: 12px 16px; border-bottom: 1px solid rgba(30,58,92,0.6); cursor: pointer; }
+  .q-item:last-child { border-bottom: none; }
+  .q-item.active { background: rgba(76,201,160,0.08); border-left: 3px solid #4CC9A0; padding-left: 13px; }
+  .q-item.calling { background: rgba(245,158,11,0.06); border-left: 3px solid #F59E0B; padding-left: 13px; }
+  .q-item.done { opacity: 0.5; }
+  .q-name { font-size: 13px; font-weight: 500; color: #E2E8F0; margin-bottom: 2px; }
+  .q-detail { font-size: 12px; color: #64748B; margin-bottom: 3px; }
+  .q-status { display: flex; align-items: center; gap: 6px; }
+  .q-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot-calling { background: #F59E0B; animation: pulse 1s infinite; }
+  .dot-waiting { background: #64748B; }
+  .dot-done { background: #4CC9A0; }
+  .dot-failed { background: #F87171; }
+  .dot-voicemail { background: #A78BFA; }
+  .q-status-text { font-size: 11px; }
+  .st-calling { color: #F59E0B; }
+  .st-waiting { color: #64748B; }
+  .st-done { color: #4CC9A0; }
+  .st-failed { color: #F87171; }
+  .st-voicemail { color: #A78BFA; }
+  .q-slot { font-size: 11px; color: #4CC9A0; margin-top: 3px; }
+
+  /* CENTER: ACTIVE CALL + TRANSCRIPT */
+  .center-panel { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .active-call-card { background: #0D1E35; border: 1px solid #4CC9A0; border-radius: 8px; overflow: hidden; }
+  .call-header { background: rgba(76,201,160,0.08); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(76,201,160,0.2); }
+  .call-header-left { display: flex; align-items: center; gap: 12px; }
+  .call-live-dot { width: 10px; height: 10px; border-radius: 50%; background: #4CC9A0; animation: pulse 1s infinite; }
+  .call-title { font-size: 14px; font-weight: 700; color: #4CC9A0; }
+  .call-patient { font-size: 13px; color: #CBD5E1; }
+  .call-duration { font-family: monospace; font-size: 18px; font-weight: 700; color: #4CC9A0; }
+  .call-meta { display: flex; gap: 24px; padding: 12px 20px; border-bottom: 1px solid #1E3A5C; }
+  .call-meta-item { }
+  .cm-label { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; }
+  .cm-value { font-size: 13px; color: #CBD5E1; font-weight: 500; margin-top: 2px; }
+  .cm-value.green { color: #4CC9A0; }
+
+  /* TRANSCRIPT */
+  .transcript-area { padding: 16px 20px; max-height: 280px; overflow-y: auto; }
+  .transcript-title { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .t-line { margin-bottom: 14px; display: flex; gap: 10px; }
+  .t-speaker { font-size: 11px; font-weight: 700; min-width: 60px; margin-top: 1px; }
+  .t-speaker.agent { color: #4CC9A0; }
+  .t-speaker.patient { color: #94A3B8; }
+  .t-text { font-size: 13px; color: #CBD5E1; line-height: 1.5; }
+  .t-text.typing::after { content: '|'; animation: blink 0.8s infinite; color: #4CC9A0; }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+  /* SLOT BEING OFFERED */
+  .slot-offer-card { background: rgba(76,201,160,0.06); border: 1px solid rgba(76,201,160,0.3); border-radius: 6px; padding: 12px 16px; margin: 0 20px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .slot-offer-label { font-size: 12px; color: #4CC9A0; font-weight: 600; margin-bottom: 3px; }
+  .slot-offer-detail { font-size: 13px; color: #E2E8F0; }
+  .slot-action-group { display: flex; gap: 8px; }
+  .slot-btn { padding: 6px 14px; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .slot-confirm { background: #4CC9A0; color: #0A1628; }
+  .slot-alt { background: transparent; border: 1px solid #4CC9A0; color: #4CC9A0; }
+
+  /* RESULTS TABLE */
+  .results-card { background: #0D1E35; border: 1px solid #1E3A5C; border-radius: 8px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #1E3A5C; }
+  td { padding: 11px 16px; font-size: 13px; border-bottom: 1px solid rgba(30,58,92,0.5); color: #CBD5E1; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+
+  .outcome-pill { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .pill-confirmed { background: rgba(76,201,160,0.2); color: #4CC9A0; }
+  .pill-voicemail { background: rgba(167,139,250,0.2); color: #A78BFA; }
+  .pill-no-answer { background: rgba(100,116,139,0.3); color: #94A3B8; }
+  .pill-calling { background: rgba(245,158,11,0.2); color: #F59E0B; }
+  .pill-declined { background: rgba(248,113,113,0.2); color: #F87171; }
+
+  /* RIGHT PANEL */
+  .right-panel { width: 280px; display: flex; flex-direction: column; gap: 14px; }
+  .right-card { background: #0D1E35; border: 1px solid #1E3A5C; border-radius: 8px; overflow: hidden; }
+  .slots-filled { display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px; border-bottom: 1px solid #1E3A5C; }
+  .slots-ring { width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(#4CC9A0 0% 80%, #1E3A5C 80% 100%); display: flex; align-items: center; justify-content: center; position: relative; }
+  .slots-ring-inner { width: 72px; height: 72px; border-radius: 50%; background: #0D1E35; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .slots-num { font-size: 24px; font-weight: 800; color: #4CC9A0; line-height: 1; }
+  .slots-of { font-size: 11px; color: #475569; }
+  .slots-label { font-size: 12px; color: #64748B; margin-top: 10px; text-align: center; }
+  .slots-sub { font-size: 11px; color: #475569; text-align: center; margin-top: 2px; }
+
+  .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid rgba(30,58,92,0.5); }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-label { font-size: 12px; color: #64748B; }
+  .metric-val { font-size: 13px; font-weight: 600; }
+  .metric-green { color: #4CC9A0; }
+  .metric-amber { color: #F59E0B; }
+  .metric-white { color: #CBD5E1; }
+
+  .slot-item { padding: 10px 16px; border-bottom: 1px solid rgba(30,58,92,0.5); }
+  .slot-item:last-child { border-bottom: none; }
+  .slot-time { font-size: 13px; font-weight: 600; color: #E2E8F0; }
+  .slot-loc { font-size: 11px; color: #64748B; }
+  .slot-state { font-size: 11px; margin-top: 3px; }
+  .slot-filled { color: #4CC9A0; }
+  .slot-open { color: #F59E0B; }
+
+  /* FOOTER */
+  .footer { background: #060E1B; border-top: 1px solid #1E3A5C; padding: 10px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .footer-sources { font-size: 11px; color: #334155; }
+  .footer-sources span { color: #475569; }
+  .footer-ts { font-size: 11px; color: #1E3A5C; }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-left">
+    <div class="app-name">Vantage Health Partners &nbsp;<span>|</span>&nbsp; Scheduling Voice Agent</div>
+    <div class="live-pill">
+      <div class="live-dot"></div>
+      <div class="live-text">AGENT ACTIVE</div>
+    </div>
+  </div>
+  <div class="topnav-right">
+    <div class="clock">10:34:07 AM</div>
+    <div class="user-pill">
+      <div class="user-avatar">KS</div>
+      <div>
+        <div class="user-name">Karen Sutton</div>
+        <div class="user-role">CFO</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="subnav">
+  <div class="subnav-tab">Prior Authorization</div>
+  <div class="subnav-tab">Denial Management</div>
+  <div class="subnav-tab">Eligibility Verification</div>
+  <div class="subnav-tab active">Scheduling</div>
+  <div class="subnav-tab">Coding Audit</div>
+  <div class="subnav-tab">Reports</div>
+</div>
+
+<div class="alert-banner">
+  <div class="alert-text"><strong>4 cancellation slots</strong> opened at Vantage &mdash; Main Campus this morning. Agent is working the waitlist. 3 slots filled so far without staff involvement.</div>
+  <div class="alert-action">View session log &rarr;</div>
+</div>
+
+<div class="stat-strip">
+  <div class="stat-card">
+    <div class="stat-label">Cancellations Today</div>
+    <div class="stat-value val-amber">4</div>
+    <div class="stat-sub">Main Campus &middot; All specialties</div>
+    <div class="stat-trend trend-bad">&uarr; 2 since 9 AM</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Slots Filled by Agent</div>
+    <div class="stat-value val-green">3</div>
+    <div class="stat-sub">of 4 cancellation slots</div>
+    <div class="stat-trend trend-good">1 call in progress now</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Waitlist Contacts Reached</div>
+    <div class="stat-value val-white">11</div>
+    <div class="stat-sub">of 18 attempted</div>
+    <div class="stat-trend" style="color:#94A3B8;">7 voicemail / no answer</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Avg. Call Duration</div>
+    <div class="stat-value val-white">1:42</div>
+    <div class="stat-sub">Outbound scheduling call</div>
+    <div class="stat-trend" style="color:#94A3B8;">Min: 0:58 &middot; Max: 3:14</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Staff Calls Needed</div>
+    <div class="stat-value val-green">0</div>
+    <div class="stat-sub">Agent handling all outreach</div>
+    <div class="stat-trend trend-good">No staff intervention today</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Revenue Protected</div>
+    <div class="stat-value val-green">$8,400</div>
+    <div class="stat-sub">3 slots &times; est. $2,800 avg.</div>
+    <div class="stat-trend trend-good">vs. $11,200 if all 4 filled</div>
+  </div>
+</div>
+
+<div class="three-panel">
+
+  <!-- LEFT: WAITLIST QUEUE -->
+  <div class="queue-panel">
+    <div class="panel-head">
+      <div class="panel-head-title">Waitlist Queue</div>
+      <div class="count-badge">18 contacts</div>
+    </div>
+
+    <div class="q-item calling">
+      <div class="q-name">Patricia Mercer</div>
+      <div class="q-detail">Main Campus &middot; Cardiology</div>
+      <div class="q-status">
+        <div class="q-dot dot-calling"></div>
+        <div class="q-status-text st-calling">Calling now &mdash; 1:23</div>
+      </div>
+      <div class="q-slot">Offering: Thu May 8 &middot; 2:15 PM</div>
+    </div>
+
+    <div class="q-item done">
+      <div class="q-name">Howard Breen</div>
+      <div class="q-detail">Main Campus &middot; Orthopedics</div>
+      <div class="q-status">
+        <div class="q-dot dot-done"></div>
+        <div class="q-status-text st-done">Confirmed &mdash; slot filled</div>
+      </div>
+      <div class="q-slot">Booked: Wed May 7 &middot; 10:00 AM</div>
+    </div>
+
+    <div class="q-item done">
+      <div class="q-name">Linda Okoro</div>
+      <div class="q-detail">Main Campus &middot; Radiology</div>
+      <div class="q-status">
+        <div class="q-dot dot-done"></div>
+        <div class="q-status-text st-done">Confirmed &mdash; slot filled</div>
+      </div>
+      <div class="q-slot">Booked: Thu May 8 &middot; 9:30 AM</div>
+    </div>
+
+    <div class="q-item done">
+      <div class="q-name">James Whitmore</div>
+      <div class="q-detail">Main Campus &middot; Cardiology</div>
+      <div class="q-status">
+        <div class="q-dot dot-done"></div>
+        <div class="q-status-text st-done">Confirmed &mdash; slot filled</div>
+      </div>
+      <div class="q-slot">Booked: Fri May 9 &middot; 11:00 AM</div>
+    </div>
+
+    <div class="q-item">
+      <div class="q-name">Denise Huang</div>
+      <div class="q-detail">Main Campus &middot; Orthopedics</div>
+      <div class="q-status">
+        <div class="q-dot" style="background:#A78BFA;animation:pulse 1s infinite;"></div>
+        <div class="q-status-text st-voicemail">Voicemail left</div>
+      </div>
+      <div class="q-slot" style="color:#475569;">Slot held for 2 hrs</div>
+    </div>
+
+    <div class="q-item">
+      <div class="q-name">Robert Stein</div>
+      <div class="q-detail">Vantage North &middot; Cardiology</div>
+      <div class="q-status">
+        <div class="q-dot dot-waiting"></div>
+        <div class="q-status-text st-waiting">In queue &mdash; next</div>
+      </div>
+    </div>
+
+    <div class="q-item">
+      <div class="q-name">Maria Castellano</div>
+      <div class="q-detail">Main Campus &middot; Neurology</div>
+      <div class="q-status">
+        <div class="q-dot dot-waiting"></div>
+        <div class="q-status-text st-waiting">In queue</div>
+      </div>
+    </div>
+
+    <div class="q-item">
+      <div class="q-name">Thomas Adeyemi</div>
+      <div class="q-detail">Vantage Southside &middot; PT</div>
+      <div class="q-status">
+        <div class="q-dot dot-failed"></div>
+        <div class="q-status-text st-failed">No answer &mdash; 2 attempts</div>
+      </div>
+    </div>
+
+    <div style="padding:10px 16px;text-align:center;border-top:1px solid #1E3A5C;">
+      <div style="font-size:12px;color:#475569;cursor:pointer;">View full waitlist (18) &rarr;</div>
+    </div>
+  </div>
+
+  <!-- CENTER PANEL -->
+  <div class="center-panel">
+
+    <!-- ACTIVE CALL -->
+    <div class="active-call-card">
+      <div class="call-header">
+        <div class="call-header-left">
+          <div class="call-live-dot"></div>
+          <div>
+            <div class="call-title">Live Call &mdash; Scheduling Outreach</div>
+            <div class="call-patient">Patricia Mercer &nbsp;&middot;&nbsp; (503) 448-2917 &nbsp;&middot;&nbsp; Cardiology waitlist</div>
+          </div>
+        </div>
+        <div class="call-duration">1:23</div>
+      </div>
+      <div class="call-meta">
+        <div class="call-meta-item">
+          <div class="cm-label">Slot Offered</div>
+          <div class="cm-value green">Thu May 8 &middot; 2:15 PM</div>
+        </div>
+        <div class="call-meta-item">
+          <div class="cm-label">Location</div>
+          <div class="cm-value">Vantage &mdash; Main Campus</div>
+        </div>
+        <div class="call-meta-item">
+          <div class="cm-label">Provider</div>
+          <div class="cm-value">Dr. Anita Sharma, MD</div>
+        </div>
+        <div class="call-meta-item">
+          <div class="cm-label">Waitlist Since</div>
+          <div class="cm-value">Apr 19</div>
+        </div>
+        <div class="call-meta-item">
+          <div class="cm-label">Previous Appt.</div>
+          <div class="cm-value">Cancelled May 2 &middot; 11 AM</div>
+        </div>
+      </div>
+
+      <div class="transcript-area">
+        <div class="transcript-title">Live Transcript</div>
+        <div class="t-line">
+          <div class="t-speaker agent">AGENT</div>
+          <div class="t-text">Hello, may I speak with Patricia Mercer? This is the Vantage Health Partners scheduling team calling about your cardiology appointment.</div>
+        </div>
+        <div class="t-line">
+          <div class="t-speaker patient">PATIENT</div>
+          <div class="t-text">Yes, this is Patricia.</div>
+        </div>
+        <div class="t-line">
+          <div class="t-speaker agent">AGENT</div>
+          <div class="t-text">Patricia, I am calling because a same-week appointment has opened with Dr. Sharma at our Main Campus location. We have Thursday, May 8th at 2:15 PM available. Would that work for you?</div>
+        </div>
+        <div class="t-line">
+          <div class="t-speaker patient">PATIENT</div>
+          <div class="t-text">Oh, that would be great. Thursday at 2:15 works perfectly.</div>
+        </div>
+        <div class="t-line">
+          <div class="t-speaker agent">AGENT</div>
+          <div class="t-text typing">Wonderful. I will confirm Thursday, May 8th at 2:15 PM with Dr. Sharma at Vantage Main Campus. You will receive a text confirmation shortly. Is there anything else&nbsp;</div>
+        </div>
+      </div>
+
+      <div class="slot-offer-card">
+        <div>
+          <div class="slot-offer-label">Slot Being Confirmed</div>
+          <div class="slot-offer-detail">Thu May 8 &middot; 2:15 PM &middot; Dr. Anita Sharma &middot; Vantage Main Campus &middot; Cardiology</div>
+        </div>
+        <div class="slot-action-group">
+          <div class="slot-btn slot-confirm">Patient Confirming &rarr;</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALL RESULTS TABLE -->
+    <div class="results-card">
+      <div class="panel-head">
+        <div class="panel-head-title">Session Results &mdash; Today</div>
+        <div class="count-badge amber">18 attempted</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Location</th>
+            <th>Specialty</th>
+            <th>Slot Offered</th>
+            <th>Call Time</th>
+            <th>Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Patricia Mercer</td>
+            <td>Main Campus</td>
+            <td>Cardiology</td>
+            <td>Thu May 8 &middot; 2:15 PM</td>
+            <td style="font-family:monospace;font-size:12px;color:#94A3B8;">1:23 (active)</td>
+            <td><span class="outcome-pill pill-calling">Confirming</span></td>
+          </tr>
+          <tr>
+            <td>Howard Breen</td>
+            <td>Main Campus</td>
+            <td>Orthopedics</td>
+            <td>Wed May 7 &middot; 10:00 AM</td>
+            <td style="font-family:monospace;font-size:12px;color:#94A3B8;">1:58</td>
+            <td><span class="outcome-pill pill-confirmed">Confirmed</span></td>
+          </tr>
+          <tr>
+            <td>Linda Okoro</td>
+            <td>Main Campus</td>
+            <td>Radiology</td>
+            <td>Thu May 8 &middot; 9:30 AM</td>
+            <td style="font-family:monospace;font-size:12px;color:#94A3B8;">2:11</td>
+            <td><span class="outcome-pill pill-confirmed">Confirmed</span></td>
+          </tr>
+          <tr>
+            <td>James Whitmore</td>
+            <td>Main Campus</td>
+            <td>Cardiology</td>
+            <td>Fri May 9 &middot; 11:00 AM</td>
+            <td style="font-family:monospace;font-size:12px;color:#94A3B8;">1:05</td>
+            <td><span class="outcome-pill pill-confirmed">Confirmed</span></td>
+          </tr>
+          <tr>
+            <td>Denise Huang</td>
+            <td>Main Campus</td>
+            <td>Orthopedics</td>
+            <td>Fri May 9 &middot; 3:00 PM</td>
+            <td style="font-family:monospace;font-size:12px;color:#94A3B8;">0:58</td>
+            <td><span class="outcome-pill pill-voicemail">Voicemail</span></td>
+          </tr>
+          <tr>
+            <td>Thomas Adeyemi</td>
+            <td>Southside</td>
+            <td>Physical Therapy</td>
+            <td>Thu May 8 &middot; 1:00 PM</td>
+            <td style="font-family:monospace;font-size:12px;color:#94A3B8;">0:00</td>
+            <td><span class="outcome-pill pill-no-answer">No Answer</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <div class="right-card">
+      <div class="panel-head">
+        <div class="panel-head-title">Today's Slot Status</div>
+      </div>
+      <div class="slots-filled">
+        <div class="slots-ring">
+          <div class="slots-ring-inner">
+            <div class="slots-num">3</div>
+            <div class="slots-of">of 4</div>
+          </div>
+        </div>
+        <div class="slots-label">Cancellation Slots Filled</div>
+        <div class="slots-sub">1 call in progress &middot; likely 4 of 4</div>
+      </div>
+      <div class="slot-item">
+        <div class="slot-time">Wed May 7 &middot; 10:00 AM</div>
+        <div class="slot-loc">Main Campus &middot; Orthopedics &middot; Dr. Ruiz</div>
+        <div class="slot-state slot-filled">&#10003; Filled &mdash; Howard Breen</div>
+      </div>
+      <div class="slot-item">
+        <div class="slot-time">Thu May 8 &middot; 9:30 AM</div>
+        <div class="slot-loc">Main Campus &middot; Radiology &middot; Dr. Park</div>
+        <div class="slot-state slot-filled">&#10003; Filled &mdash; Linda Okoro</div>
+      </div>
+      <div class="slot-item">
+        <div class="slot-time">Thu May 8 &middot; 2:15 PM</div>
+        <div class="slot-loc">Main Campus &middot; Cardiology &middot; Dr. Sharma</div>
+        <div class="slot-state slot-open">&#9679; Confirming &mdash; Patricia Mercer (live)</div>
+      </div>
+      <div class="slot-item">
+        <div class="slot-time">Fri May 9 &middot; 11:00 AM</div>
+        <div class="slot-loc">Main Campus &middot; Cardiology &middot; Dr. Sharma</div>
+        <div class="slot-state slot-filled">&#10003; Filled &mdash; James Whitmore</div>
+      </div>
+    </div>
+
+    <div class="right-card">
+      <div class="panel-head">
+        <div class="panel-head-title">Session Metrics</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Calls attempted</div>
+        <div class="metric-val metric-white">18</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Patients reached</div>
+        <div class="metric-val metric-white">11</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Slots confirmed</div>
+        <div class="metric-val metric-green">3 (+ 1 in progress)</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Voicemails left</div>
+        <div class="metric-val" style="color:#A78BFA;">4</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">No answer</div>
+        <div class="metric-val" style="color:#64748B;">3</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Declined slot</div>
+        <div class="metric-val" style="color:#F87171;">1</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Staff calls placed</div>
+        <div class="metric-val metric-green">0</div>
+      </div>
+      <div class="metric-row" style="border-bottom:none;">
+        <div class="metric-label">Revenue protected (est.)</div>
+        <div class="metric-val metric-green">$8,400</div>
+      </div>
+    </div>
+
+    <div class="right-card">
+      <div class="panel-head">
+        <div class="panel-head-title">Before vs. After</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Staff to fill 4 slots (before)</div>
+        <div class="metric-val" style="color:#F87171;">~2.5 hrs</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Agent time to fill 4 slots</div>
+        <div class="metric-val metric-green">28 min</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-label">Staff involvement today</div>
+        <div class="metric-val metric-green">Zero calls</div>
+      </div>
+      <div class="metric-row" style="border-bottom:none;">
+        <div class="metric-label">Patient wait: slot to booking</div>
+        <div class="metric-val metric-green">&lt; 30 min</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-sources">Data sources: <span>Epic EHR</span> &nbsp;&middot;&nbsp; <span>Vantage Scheduling System</span> &nbsp;&middot;&nbsp; <span>Twilio Voice</span> &nbsp;&middot;&nbsp; <span>RetellAI Voice Agent</span> &nbsp;&middot;&nbsp; Tayana AI Scheduling Agent v1.0</div>
+  <div class="footer-ts">Vantage Health Partners &middot; Scheduling Voice Agent &middot; May 2, 2025 10:34 AM</div>
+</div>
+
+</body>
+</html>

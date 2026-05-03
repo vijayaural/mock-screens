@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vantage Health Partners | Prior Authorization Intelligence</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F1F5F9; color: #1E293B; font-size: 14px; min-width: 1440px; }
+  .topnav { background: #1B3A5C; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; height: 52px; }
+  .topnav-left { display: flex; align-items: center; gap: 16px; }
+  .app-name { color: #fff; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+  .app-name span { color: #4CC9A0; }
+  .live-badge { background: #4CC9A0; color: #0F2D1F; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.06em; }
+  .topnav-right { display: flex; align-items: center; gap: 20px; }
+  .sync-label { color: #94A3B8; font-size: 12px; }
+  .alert-bell { background: #E53E3E; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
+  .user-pill { display: flex; align-items: center; gap: 8px; }
+  .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: #4CC9A0; display: flex; align-items: center; justify-content: center; color: #0F2D1F; font-weight: 700; font-size: 12px; }
+  .user-name { color: #E2E8F0; font-size: 13px; }
+  .user-role { color: #64748B; font-size: 11px; }
+  .subnav { background: #fff; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; padding: 0 28px; height: 42px; gap: 0; }
+  .subnav-tab { padding: 0 18px; height: 42px; display: flex; align-items: center; font-size: 13px; color: #64748B; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .subnav-tab.active { color: #1B3A5C; border-bottom-color: #4CC9A0; font-weight: 600; }
+  .alert-banner { background: #FEF3C7; border-left: 4px solid #F59E0B; margin: 20px 28px 0; padding: 10px 16px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; }
+  .alert-banner-text { font-size: 13px; color: #92400E; }
+  .alert-banner-text strong { font-weight: 600; }
+  .alert-banner-action { font-size: 12px; color: #1B3A5C; font-weight: 600; cursor: pointer; text-decoration: underline; }
+  .kpi-strip { display: flex; gap: 16px; padding: 16px 28px; }
+  .kpi-card { background: #fff; border-radius: 8px; padding: 16px 20px; flex: 1; border: 1px solid #E2E8F0; }
+  .kpi-label { font-size: 11px; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .kpi-value { font-size: 28px; font-weight: 700; color: #1B3A5C; line-height: 1; }
+  .kpi-value.red { color: #DC2626; }
+  .kpi-value.amber { color: #D97706; }
+  .kpi-value.green { color: #059669; }
+  .kpi-sub { font-size: 12px; color: #94A3B8; margin-top: 5px; }
+  .kpi-trend { font-size: 12px; margin-top: 4px; }
+  .kpi-trend.up-good { color: #059669; }
+  .kpi-trend.down-bad { color: #DC2626; }
+  .filter-bar { display: flex; align-items: center; gap: 10px; padding: 0 28px 14px; }
+  .filter-label { font-size: 12px; color: #64748B; }
+  .chip { background: #E2E8F0; color: #475569; font-size: 12px; padding: 4px 12px; border-radius: 20px; cursor: pointer; }
+  .chip.active { background: #1B3A5C; color: #fff; }
+  .filter-spacer { flex: 1; }
+  .filter-btn { background: #fff; border: 1px solid #CBD5E1; color: #475569; font-size: 12px; padding: 5px 14px; border-radius: 5px; cursor: pointer; }
+  .export-btn { background: #1B3A5C; color: #fff; font-size: 12px; padding: 5px 14px; border-radius: 5px; cursor: pointer; }
+  .content-row { display: flex; gap: 16px; padding: 0 28px 20px; }
+  .main-panel { flex: 1; }
+  .side-panel { width: 320px; }
+  .panel-card { background: #fff; border-radius: 8px; border: 1px solid #E2E8F0; overflow: hidden; }
+  .panel-header { padding: 14px 18px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 13px; font-weight: 600; color: #1E293B; }
+  .panel-subtitle { font-size: 12px; color: #94A3B8; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: #F8FAFC; }
+  th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #E2E8F0; white-space: nowrap; }
+  td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F8FAFC; }
+  .status-pill { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .pill-green { background: #D1FAE5; color: #065F46; }
+  .pill-amber { background: #FEF3C7; color: #92400E; }
+  .pill-red { background: #FEE2E2; color: #991B1B; }
+  .pill-blue { background: #DBEAFE; color: #1E40AF; }
+  .time-col { font-family: 'Courier New', monospace; font-size: 12px; }
+  .time-before { color: #DC2626; font-weight: 600; }
+  .time-after { color: #059669; font-weight: 600; }
+  .payer-row { display: flex; align-items: center; padding: 10px 18px; border-bottom: 1px solid #F1F5F9; gap: 12px; }
+  .payer-row:last-child { border-bottom: none; }
+  .payer-name { font-size: 13px; font-weight: 500; width: 120px; }
+  .payer-bar-wrap { flex: 1; background: #F1F5F9; border-radius: 4px; height: 8px; }
+  .payer-bar { height: 8px; border-radius: 4px; }
+  .bar-green { background: #4CC9A0; }
+  .bar-amber { background: #F59E0B; }
+  .bar-red { background: #EF4444; }
+  .payer-pct { font-size: 12px; font-weight: 600; width: 36px; text-align: right; }
+  .payer-count { font-size: 11px; color: #94A3B8; width: 60px; text-align: right; }
+  .comparison-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid #F1F5F9; }
+  .comparison-row:last-child { border-bottom: none; }
+  .comp-label { font-size: 12px; color: #475569; }
+  .comp-before { font-size: 14px; font-weight: 700; color: #DC2626; }
+  .comp-after { font-size: 14px; font-weight: 700; color: #059669; }
+  .comp-arrow { font-size: 16px; color: #94A3B8; }
+  .comp-note { font-size: 11px; color: #94A3B8; }
+  .exception-item { padding: 12px 18px; border-bottom: 1px solid #F1F5F9; }
+  .exception-item:last-child { border-bottom: none; }
+  .exc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+  .exc-name { font-size: 13px; font-weight: 500; }
+  .exc-age { font-size: 11px; color: #DC2626; font-weight: 600; }
+  .exc-detail { font-size: 12px; color: #64748B; }
+  .exc-action { font-size: 11px; color: #1B3A5C; font-weight: 600; cursor: pointer; margin-top: 4px; }
+  .footer { background: #fff; border-top: 1px solid #E2E8F0; padding: 10px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .footer-sources { font-size: 11px; color: #94A3B8; }
+  .footer-sources span { color: #475569; font-weight: 500; }
+  .footer-ts { font-size: 11px; color: #CBD5E1; }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-left">
+    <div class="app-name">Vantage Health Partners &nbsp;<span>|</span>&nbsp; Revenue Cycle Intelligence</div>
+    <div class="live-badge">LIVE</div>
+  </div>
+  <div class="topnav-right">
+    <div class="sync-label">Last sync: 9:47 AM</div>
+    <div class="alert-bell">7 alerts</div>
+    <div class="user-pill">
+      <div class="user-avatar">KS</div>
+      <div>
+        <div class="user-name">Karen Sutton</div>
+        <div class="user-role">CFO</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="subnav">
+  <div class="subnav-tab active">Prior Authorization</div>
+  <div class="subnav-tab">Denial Management</div>
+  <div class="subnav-tab">Eligibility Verification</div>
+  <div class="subnav-tab">Scheduling</div>
+  <div class="subnav-tab">Coding Audit</div>
+  <div class="subnav-tab">Reports</div>
+</div>
+
+<div class="alert-banner">
+  <div class="alert-banner-text"><strong>14 authorizations</strong> have exceeded 3-day turnaround — Vantage Southside (9) and Vantage North (5). Agent has escalated all 14 to staff queue.</div>
+  <div class="alert-banner-action">Review escalations &rarr;</div>
+</div>
+
+<div class="kpi-strip">
+  <div class="kpi-card">
+    <div class="kpi-label">Auth Requests &mdash; Today</div>
+    <div class="kpi-value">312</div>
+    <div class="kpi-sub">Across 3 locations</div>
+    <div class="kpi-trend up-good">&uarr; 18 vs. yesterday</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Handled by AI Agent</div>
+    <div class="kpi-value green">274</div>
+    <div class="kpi-sub">88% standard requests</div>
+    <div class="kpi-trend up-good">No staff touchpoint required</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Escalated to Staff</div>
+    <div class="kpi-value amber">38</div>
+    <div class="kpi-sub">12% exception rate</div>
+    <div class="kpi-trend">Awaiting review</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Avg. Turnaround &mdash; AI</div>
+    <div class="kpi-value green">Same-day</div>
+    <div class="kpi-sub">vs. 3&ndash;5 days manual</div>
+    <div class="kpi-trend up-good">&darr; 82% reduction</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Staff Time Recovered</div>
+    <div class="kpi-value green">61 hrs</div>
+    <div class="kpi-sub">This week (est.)</div>
+    <div class="kpi-trend up-good">Based on 14 min/request baseline</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Overdue (&gt;3 Days)</div>
+    <div class="kpi-value red">14</div>
+    <div class="kpi-sub">Southside: 9 &nbsp;|&nbsp; North: 5</div>
+    <div class="kpi-trend down-bad">&uarr; 4 since yesterday</div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-label">Location:</div>
+  <div class="chip active">All Locations</div>
+  <div class="chip">Vantage &mdash; Main Campus</div>
+  <div class="chip">Vantage North</div>
+  <div class="chip">Vantage Southside</div>
+  <div class="filter-spacer"></div>
+  <div class="filter-btn">Filter by Payer</div>
+  <div class="filter-btn">Filter by Specialty</div>
+  <div class="export-btn">Export CSV</div>
+</div>
+
+<div class="content-row">
+  <div class="main-panel">
+
+    <div class="panel-card" style="margin-bottom:16px;">
+      <div class="panel-header">
+        <div class="panel-title">Authorization Queue &mdash; Active Requests</div>
+        <div class="panel-subtitle">Showing 38 exceptions requiring staff review &nbsp;|&nbsp; 274 AI-managed not shown</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Auth ID</th>
+            <th>Location</th>
+            <th>Specialty</th>
+            <th>Payer</th>
+            <th>Submitted</th>
+            <th>Turnaround</th>
+            <th>Manual (est.)</th>
+            <th>AI Handled</th>
+            <th>Status</th>
+            <th>Action Required</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-family:monospace;font-size:12px;color:#64748B;">AUTH-7842</td>
+            <td>Vantage Southside</td>
+            <td>Orthopedics</td>
+            <td>United Healthcare</td>
+            <td>Apr 28</td>
+            <td><span class="time-col time-before">Day 4</span></td>
+            <td class="time-col" style="color:#94A3B8;">~14 min</td>
+            <td><span class="status-pill pill-red">Escalated</span></td>
+            <td><span class="status-pill pill-red">Overdue</span></td>
+            <td style="color:#1B3A5C;font-weight:600;cursor:pointer;font-size:12px;">Review now &rarr;</td>
+          </tr>
+          <tr>
+            <td style="font-family:monospace;font-size:12px;color:#64748B;">AUTH-7851</td>
+            <td>Vantage North</td>
+            <td>Cardiology</td>
+            <td>Aetna</td>
+            <td>Apr 28</td>
+            <td><span class="time-col time-before">Day 4</span></td>
+            <td class="time-col" style="color:#94A3B8;">~14 min</td>
+            <td><span class="status-pill pill-red">Escalated</span></td>
+            <td><span class="status-pill pill-red">Overdue</span></td>
+            <td style="color:#1B3A5C;font-weight:600;cursor:pointer;font-size:12px;">Review now &rarr;</td>
+          </tr>
+          <tr>
+            <td style="font-family:monospace;font-size:12px;color:#64748B;">AUTH-7863</td>
+            <td>Vantage &mdash; Main Campus</td>
+            <td>Oncology</td>
+            <td>BCBS</td>
+            <td>Apr 29</td>
+            <td><span class="time-col time-before">Day 3</span></td>
+            <td class="time-col" style="color:#94A3B8;">~14 min</td>
+            <td><span class="status-pill pill-amber">In Review</span></td>
+            <td><span class="status-pill pill-amber">Approaching</span></td>
+            <td style="color:#1B3A5C;font-weight:600;cursor:pointer;font-size:12px;">Review by 5 PM &rarr;</td>
+          </tr>
+          <tr>
+            <td style="font-family:monospace;font-size:12px;color:#64748B;">AUTH-7870</td>
+            <td>Vantage Southside</td>
+            <td>Neurology</td>
+            <td>Humana</td>
+            <td>Apr 29</td>
+            <td><span class="time-col" style="color:#475569;">Day 2</span></td>
+            <td class="time-col" style="color:#94A3B8;">~14 min</td>
+            <td><span class="status-pill pill-blue">Submitted</span></td>
+            <td><span class="status-pill pill-blue">Pending Payer</span></td>
+            <td style="font-size:12px;color:#94A3B8;">Monitoring</td>
+          </tr>
+          <tr>
+            <td style="font-family:monospace;font-size:12px;color:#64748B;">AUTH-7879</td>
+            <td>Vantage North</td>
+            <td>Physical Therapy</td>
+            <td>Cigna</td>
+            <td>Apr 30</td>
+            <td><span class="time-col" style="color:#475569;">Day 1</span></td>
+            <td class="time-col" style="color:#94A3B8;">~14 min</td>
+            <td><span class="status-pill pill-green">Approved</span></td>
+            <td><span class="status-pill pill-green">Approved</span></td>
+            <td style="font-size:12px;color:#94A3B8;">No action</td>
+          </tr>
+          <tr>
+            <td style="font-family:monospace;font-size:12px;color:#64748B;">AUTH-7884</td>
+            <td>Vantage &mdash; Main Campus</td>
+            <td>Radiology</td>
+            <td>United Healthcare</td>
+            <td>Apr 30</td>
+            <td><span class="time-col" style="color:#475569;">Day 1</span></td>
+            <td class="time-col" style="color:#94A3B8;">~14 min</td>
+            <td><span class="status-pill pill-green">Approved</span></td>
+            <td><span class="status-pill pill-green">Approved</span></td>
+            <td style="font-size:12px;color:#94A3B8;">No action</td>
+          </tr>
+          <tr>
+            <td style="font-family:monospace;font-size:12px;color:#64748B;">AUTH-7891</td>
+            <td>Vantage Southside</td>
+            <td>Orthopedics</td>
+            <td>Aetna</td>
+            <td>May 1</td>
+            <td><span class="time-col time-after">Same-day</span></td>
+            <td class="time-col" style="color:#94A3B8;">~14 min</td>
+            <td><span class="status-pill pill-green">Approved</span></td>
+            <td><span class="status-pill pill-green">Approved</span></td>
+            <td style="font-size:12px;color:#94A3B8;">No action</td>
+          </tr>
+          <tr>
+            <td style="font-family:monospace;font-size:12px;color:#64748B;">AUTH-7894</td>
+            <td>Vantage North</td>
+            <td>Cardiology</td>
+            <td>BCBS</td>
+            <td>May 2</td>
+            <td><span class="time-col time-after">Same-day</span></td>
+            <td class="time-col" style="color:#94A3B8;">~14 min</td>
+            <td><span class="status-pill pill-blue">Submitted</span></td>
+            <td><span class="status-pill pill-blue">Pending Payer</span></td>
+            <td style="font-size:12px;color:#94A3B8;">Monitoring</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-header">
+        <div class="panel-title">Payer Auto-Approval Rate &mdash; AI Submissions (This Week)</div>
+        <div class="panel-subtitle">Standard requests submitted by AI agent without staff intervention</div>
+      </div>
+      <div class="payer-row">
+        <div class="payer-name" style="color:#475569;font-size:11px;font-weight:600;">PAYER</div>
+        <div style="flex:1;font-size:11px;color:#94A3B8;">AUTO-APPROVAL RATE</div>
+        <div class="payer-pct" style="font-size:11px;color:#94A3B8;">RATE</div>
+        <div class="payer-count" style="font-size:11px;color:#94A3B8;">REQUESTS</div>
+      </div>
+      <div class="payer-row">
+        <div class="payer-name">BCBS</div>
+        <div class="payer-bar-wrap"><div class="payer-bar bar-green" style="width:91%;"></div></div>
+        <div class="payer-pct" style="color:#059669;">91%</div>
+        <div class="payer-count">74 reqs</div>
+      </div>
+      <div class="payer-row">
+        <div class="payer-name">Cigna</div>
+        <div class="payer-bar-wrap"><div class="payer-bar bar-green" style="width:87%;"></div></div>
+        <div class="payer-pct" style="color:#059669;">87%</div>
+        <div class="payer-count">61 reqs</div>
+      </div>
+      <div class="payer-row">
+        <div class="payer-name">United HC</div>
+        <div class="payer-bar-wrap"><div class="payer-bar bar-amber" style="width:79%;"></div></div>
+        <div class="payer-pct" style="color:#D97706;">79%</div>
+        <div class="payer-count">88 reqs</div>
+      </div>
+      <div class="payer-row">
+        <div class="payer-name">Aetna</div>
+        <div class="payer-bar-wrap"><div class="payer-bar bar-amber" style="width:74%;"></div></div>
+        <div class="payer-pct" style="color:#D97706;">74%</div>
+        <div class="payer-count">55 reqs</div>
+      </div>
+      <div class="payer-row">
+        <div class="payer-name">Humana</div>
+        <div class="payer-bar-wrap"><div class="payer-bar bar-red" style="width:61%;"></div></div>
+        <div class="payer-pct" style="color:#DC2626;">61%</div>
+        <div class="payer-count">34 reqs</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="side-panel">
+
+    <div class="panel-card" style="margin-bottom:16px;">
+      <div class="panel-header">
+        <div class="panel-title">Before vs. After &mdash; This Location Set</div>
+        <div class="panel-subtitle">Vantage Health Partners &middot; 3 locations &middot; 312 daily auths</div>
+      </div>
+      <div class="comparison-row">
+        <div>
+          <div class="comp-label">Avg. Turnaround</div>
+          <div class="comp-note">Standard requests</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="comp-before">3&ndash;5 days</div>
+          <div class="comp-arrow">&rarr;</div>
+          <div class="comp-after">Same-day</div>
+        </div>
+      </div>
+      <div class="comparison-row">
+        <div>
+          <div class="comp-label">Staff time / request</div>
+          <div class="comp-note">Manual touchpoints</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="comp-before">12&ndash;16 min</div>
+          <div class="comp-arrow">&rarr;</div>
+          <div class="comp-after">Exceptions only</div>
+        </div>
+      </div>
+      <div class="comparison-row">
+        <div>
+          <div class="comp-label">Staff hours/week</div>
+          <div class="comp-note">Auth-related tasks</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="comp-before">~73 hrs</div>
+          <div class="comp-arrow">&rarr;</div>
+          <div class="comp-after">~12 hrs</div>
+        </div>
+      </div>
+      <div class="comparison-row">
+        <div>
+          <div class="comp-label">Exception rate</div>
+          <div class="comp-note">Requires staff review</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="comp-before">100%</div>
+          <div class="comp-arrow">&rarr;</div>
+          <div class="comp-after">12%</div>
+        </div>
+      </div>
+      <div style="background:#F0FDF4;border-top:1px solid #D1FAE5;padding:12px 18px;">
+        <div style="font-size:11px;color:#065F46;font-weight:600;">Estimated staff hours recovered this week</div>
+        <div style="font-size:24px;font-weight:700;color:#059669;margin-top:2px;">61 hours</div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:2px;">Based on 14 min/request &middot; 274 AI-handled requests</div>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-header">
+        <div class="panel-title">Exceptions &mdash; Staff Action Required</div>
+        <div class="panel-subtitle">14 overdue &middot; 24 pending</div>
+      </div>
+      <div class="exception-item">
+        <div class="exc-top">
+          <div class="exc-name">AUTH-7842 &middot; Southside</div>
+          <div class="exc-age">Day 4 &mdash; Overdue</div>
+        </div>
+        <div class="exc-detail">United HC &middot; Orthopedics &middot; Missing supporting doc</div>
+        <div class="exc-action">Upload documentation &rarr;</div>
+      </div>
+      <div class="exception-item">
+        <div class="exc-top">
+          <div class="exc-name">AUTH-7851 &middot; North</div>
+          <div class="exc-age">Day 4 &mdash; Overdue</div>
+        </div>
+        <div class="exc-detail">Aetna &middot; Cardiology &middot; Payer portal unresponsive</div>
+        <div class="exc-action">Manual portal follow-up &rarr;</div>
+      </div>
+      <div class="exception-item">
+        <div class="exc-top">
+          <div class="exc-name">AUTH-7863 &middot; Main Campus</div>
+          <div class="exc-age" style="color:#D97706;">Day 3 &mdash; Due today</div>
+        </div>
+        <div class="exc-detail">BCBS &middot; Oncology &middot; Clinical criteria clarification</div>
+        <div class="exc-action">Clinical review required &rarr;</div>
+      </div>
+      <div class="exception-item">
+        <div class="exc-top">
+          <div class="exc-name">AUTH-7871 &middot; Southside</div>
+          <div class="exc-age" style="color:#D97706;">Day 3 &mdash; Due today</div>
+        </div>
+        <div class="exc-detail">Humana &middot; Neurology &middot; Additional records requested</div>
+        <div class="exc-action">Retrieve EHR records &rarr;</div>
+      </div>
+      <div style="padding:10px 18px;text-align:center;">
+        <div style="font-size:12px;color:#1B3A5C;font-weight:600;cursor:pointer;">View all 38 exceptions &rarr;</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-sources">Data sources: <span>Epic EHR</span> &nbsp;&middot;&nbsp; <span>United HC Portal</span> &nbsp;&middot;&nbsp; <span>Aetna NaviNet</span> &nbsp;&middot;&nbsp; <span>BCBS Availity</span> &nbsp;&middot;&nbsp; <span>Humana Provider Portal</span> &nbsp;&middot;&nbsp; <span>Cigna Provider</span> &nbsp;&middot;&nbsp; Tayana AI Auth Agent v1.2</div>
+  <div class="footer-ts">Vantage Health Partners &middot; Revenue Cycle Intelligence &middot; May 2, 2025 9:47 AM</div>
+</div>
+
+</body>
+</html>
