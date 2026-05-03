@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian Specialty Insurance | Premium Audit Coordination</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans', sans-serif; background:#ECEEF2; color:#1C2433; font-size:13px; }
+
+  /* TOP NAV */
+  .topnav {
+    background:#FFFFFF; border-bottom:1px solid #D8DCE4;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; height:56px;
+  }
+  .nav-left { display:flex; align-items:center; gap:24px; }
+  .brand { font-size:14px; font-weight:700; color:#1C2433; }
+  .brand em { color:#2563EB; font-style:normal; }
+  .nav-crumb { font-size:11px; color:#94A3B8; display:flex; align-items:center; gap:6px; }
+  .crumb-sep { color:#CBD5E1; }
+  .crumb-active { color:#1C2433; font-weight:500; }
+  .nav-right { display:flex; align-items:center; gap:16px; }
+  .nav-user { font-size:11px; color:#64748B; }
+  .avatar { width:30px; height:30px; border-radius:50%; background:#1C2433; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+
+  /* SUBBAR */
+  .subbar {
+    background:#FFFFFF; border-bottom:1px solid #D8DCE4;
+    padding:0 28px; display:flex; align-items:center; justify-content:space-between; height:44px;
+  }
+  .subbar-tabs { display:flex; gap:0; }
+  .stab {
+    font-size:11px; font-weight:500; padding:0 18px; height:44px;
+    display:flex; align-items:center; color:#64748B; border-bottom:2px solid transparent;
+    cursor:pointer;
+  }
+  .stab.active { color:#2563EB; border-bottom-color:#2563EB; font-weight:600; }
+  .subbar-right { display:flex; gap:10px; align-items:center; }
+  .search-box {
+    border:1px solid #D8DCE4; border-radius:5px; padding:6px 12px;
+    font-size:11px; color:#64748B; background:#F8FAFC; width:200px;
+    outline:none; font-family:'DM Sans', sans-serif;
+  }
+  .export-btn {
+    font-size:11px; font-weight:600; padding:6px 14px; border-radius:5px;
+    border:1px solid #D8DCE4; background:#FFFFFF; color:#1C2433; cursor:pointer;
+  }
+
+  /* LAYOUT */
+  .layout { display:grid; grid-template-columns:1fr 320px; height:calc(100vh - 56px - 44px); }
+
+  /* MAIN — table area */
+  .main { background:#ECEEF2; display:flex; flex-direction:column; overflow:hidden; }
+
+  /* Summary strips */
+  .summary-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px 20px 0; }
+  .sum-card {
+    background:#FFFFFF; border:1px solid #D8DCE4; border-radius:8px;
+    padding:14px 18px; display:flex; flex-direction:column; gap:4px;
+  }
+  .sum-label { font-size:10px; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:0.7px; }
+  .sum-val { font-size:22px; font-weight:700; color:#1C2433; font-family:'DM Mono', monospace; }
+  .sum-val.green { color:#16A34A; }
+  .sum-val.blue { color:#2563EB; }
+  .sum-note { font-size:10px; color:#94A3B8; }
+  .sum-note strong { color:#16A34A; }
+
+  /* Table wrapper */
+  .table-wrap { flex:1; overflow-y:auto; padding:16px 20px; }
+  .data-table { width:100%; border-collapse:collapse; background:#FFFFFF; border:1px solid #D8DCE4; border-radius:8px; overflow:hidden; }
+  .data-table thead th {
+    padding:11px 14px; text-align:left;
+    font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.7px;
+    background:#F8FAFC; border-bottom:1px solid #D8DCE4; white-space:nowrap;
+  }
+  .data-table tbody tr { border-bottom:1px solid #EEF1F5; cursor:pointer; transition:background 0.1s; }
+  .data-table tbody tr:last-child { border-bottom:none; }
+  .data-table tbody tr:hover { background:#F8FAFC; }
+  .data-table tbody tr.selected { background:#EFF6FF; }
+  .data-table td { padding:12px 14px; vertical-align:middle; }
+
+  .td-company { font-size:12px; font-weight:600; color:#1C2433; }
+  .td-policy { font-size:10px; color:#94A3B8; margin-top:2px; font-family:'DM Mono',monospace; }
+  .td-type { font-size:11px; color:#475569; }
+
+  .status-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:10px; font-weight:700; padding:3px 9px; border-radius:4px;
+    white-space:nowrap;
+  }
+  .sb-requested { background:#FEF3C7; color:#D97706; }
+  .sb-received { background:#DBEAFE; color:#2563EB; }
+  .sb-reconciling { background:#F3E8FF; color:#7C3AED; }
+  .sb-ready { background:#DCFCE7; color:#16A34A; }
+  .sb-complete { background:#F1F5F9; color:#64748B; }
+
+  .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+  .td-hours { font-family:'DM Mono',monospace; font-size:11px; font-weight:500; }
+  .td-hours.saved { color:#16A34A; }
+  .td-hours.manual { color:#94A3B8; text-decoration:line-through; }
+  .td-hours.ai { color:#16A34A; font-weight:700; }
+
+  .td-age { font-size:11px; color:#475569; font-family:'DM Mono',monospace; }
+  .age-warn { color:#D97706; }
+
+  /* RIGHT PANEL */
+  .right-panel { background:#FFFFFF; border-left:1px solid #D8DCE4; display:flex; flex-direction:column; overflow:hidden; }
+  .rp-hdr { padding:16px 18px; border-bottom:1px solid #D8DCE4; }
+  .rp-title { font-size:13px; font-weight:700; color:#1C2433; }
+  .rp-sub { font-size:11px; color:#94A3B8; margin-top:2px; }
+
+  .rp-body { flex:1; overflow-y:auto; padding:16px 18px; display:flex; flex-direction:column; gap:14px; }
+
+  .rp-section { display:flex; flex-direction:column; gap:8px; }
+  .rp-section-label { font-size:10px; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.8px; }
+
+  /* Selected audit detail */
+  .audit-detail { background:#F8FAFC; border:1px solid #D8DCE4; border-radius:6px; padding:14px; }
+  .ad-row { display:flex; justify-content:space-between; margin-bottom:8px; }
+  .ad-label { font-size:11px; color:#64748B; }
+  .ad-value { font-size:11px; font-weight:600; color:#1C2433; }
+  .ad-value.green { color:#16A34A; }
+  .ad-value.amber { color:#D97706; }
+  .ad-value.mono { font-family:'DM Mono',monospace; }
+
+  /* Timeline */
+  .timeline { display:flex; flex-direction:column; gap:0; }
+  .tl-item { display:flex; gap:12px; position:relative; }
+  .tl-item:not(:last-child)::after {
+    content:''; position:absolute; left:8px; top:20px;
+    width:1px; height:calc(100% + 2px); background:#D8DCE4;
+  }
+  .tl-dot { width:16px; height:16px; border-radius:50%; flex-shrink:0; margin-top:3px; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; }
+  .tld-done { background:#DCFCE7; border:2px solid #16A34A; color:#16A34A; }
+  .tld-active { background:#DBEAFE; border:2px solid #2563EB; color:#2563EB; }
+  .tld-pending { background:#F8FAFC; border:2px solid #D8DCE4; color:#94A3B8; }
+  .tl-text { display:flex; flex-direction:column; padding-bottom:12px; }
+  .tl-name { font-size:11px; font-weight:600; color:#1C2433; }
+  .tl-date { font-size:10px; color:#94A3B8; margin-top:2px; }
+
+  /* Hours comparison */
+  .hours-compare { background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:14px; }
+  .hc-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .hc-label { font-size:11px; color:#64748B; }
+  .hc-val { font-size:11px; font-weight:700; font-family:'DM Mono',monospace; }
+  .hc-divider { border:none; border-top:1px solid #BBF7D0; margin:8px 0; }
+  .hc-saving { display:flex; justify-content:space-between; align-items:center; }
+  .hc-saving-label { font-size:12px; font-weight:700; color:#16A34A; }
+  .hc-saving-val { font-size:18px; font-weight:700; color:#16A34A; font-family:'DM Mono',monospace; }
+
+  /* Aggregate stats -->
+  .agg-section { background:#F8FAFC; border:1px solid #D8DCE4; border-radius:6px; padding:14px; }
+  .agg-row { display:flex; justify-content:space-between; margin-bottom:8px; }
+  .agg-row:last-child { margin-bottom:0; }
+  .agg-label { font-size:11px; color:#64748B; }
+  .agg-val { font-size:11px; font-weight:700; color:#1C2433; font-family:'DM Mono',monospace; }
+  .agg-val.green { color:#16A34A; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="nav-left">
+    <div class="brand">Meridian <em>Specialty</em> Insurance</div>
+    <div class="nav-crumb">
+      <span>Policy Services</span>
+      <span class="crumb-sep">›</span>
+      <span class="crumb-active">Premium Audit Coordination</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-user">Thomas Reeves, VP Claims &nbsp;·&nbsp; May 2, 2026</div>
+    <div class="avatar">TR</div>
+  </div>
+</div>
+
+<!-- SUBBAR -->
+<div class="subbar">
+  <div class="subbar-tabs">
+    <div class="stab active">Active Audits (18)</div>
+    <div class="stab">Completed This Month (31)</div>
+    <div class="stab">Scheduled (9)</div>
+  </div>
+  <div class="subbar-right">
+    <input class="search-box" type="text" placeholder="Search by policyholder or policy #…" />
+    <div class="export-btn">Export</div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- MAIN TABLE -->
+  <div class="main">
+
+    <div class="summary-strip">
+      <div class="sum-card">
+        <div class="sum-label">Active Audits</div>
+        <div class="sum-val blue">18</div>
+        <div class="sum-note">4 ready for auditor review</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-label">Avg. Staff Hours / Audit</div>
+        <div class="sum-val green">0.7h</div>
+        <div class="sum-note">Was <strong>4.8h manually</strong></div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-label">Hours Saved — MTD</div>
+        <div class="sum-val green">123h</div>
+        <div class="sum-note">Across 31 completed audits</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-label">Documents Awaited</div>
+        <div class="sum-val">7</div>
+        <div class="sum-note">Broker follow-ups sent</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Policyholder</th>
+            <th>Policy #</th>
+            <th>Line</th>
+            <th>Status</th>
+            <th>Documents</th>
+            <th>AI Hours</th>
+            <th>Manual Est.</th>
+            <th>Days Open</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="selected">
+            <td>
+              <div class="td-company">Consolidated Freight LLC</div>
+              <div class="td-policy">MSI-2023-70441</div>
+            </td>
+            <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:#475569">MSI-2023-70441</span></td>
+            <td><div class="td-type">Commercial Auto</div></td>
+            <td><div class="status-badge sb-reconciling"><div class="dot"></div>Reconciling</div></td>
+            <td><span style="font-size:11px;color:#475569">4 of 4 received</span></td>
+            <td><div class="td-hours ai">0.6h</div></td>
+            <td><div class="td-hours manual">5.0h</div></td>
+            <td><div class="td-age">8d</div></td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="td-company">Lakeview Hospitality Group</div>
+            </td>
+            <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:#475569">MSI-2024-18820</span></td>
+            <td><div class="td-type">General Liability</div></td>
+            <td><div class="status-badge sb-ready"><div class="dot"></div>Ready for Review</div></td>
+            <td><span style="font-size:11px;color:#475569">3 of 3 received</span></td>
+            <td><div class="td-hours ai">0.8h</div></td>
+            <td><div class="td-hours manual">4.5h</div></td>
+            <td><div class="td-age">12d</div></td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="td-company">Northfield Contractors Inc.</div>
+            </td>
+            <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:#475569">MSI-2023-55103</span></td>
+            <td><div class="td-type">Workers' Comp</div></td>
+            <td><div class="status-badge sb-requested"><div class="dot"></div>Docs Requested</div></td>
+            <td><span style="font-size:11px;color:#D97706">1 of 4 received</span></td>
+            <td><div class="td-hours ai">0.3h</div></td>
+            <td><div class="td-hours manual">6.0h</div></td>
+            <td><div class="td-age age-warn">19d</div></td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="td-company">Midstate Electrical Services</div>
+            </td>
+            <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:#475569">MSI-2024-31209</span></td>
+            <td><div class="td-type">General Liability</div></td>
+            <td><div class="status-badge sb-ready"><div class="dot"></div>Ready for Review</div></td>
+            <td><span style="font-size:11px;color:#475569">5 of 5 received</span></td>
+            <td><div class="td-hours ai">0.9h</div></td>
+            <td><div class="td-hours manual">5.5h</div></td>
+            <td><div class="td-age">10d</div></td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="td-company">Apex Building Maintenance</div>
+            </td>
+            <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:#475569">MSI-2023-84477</span></td>
+            <td><div class="td-type">Workers' Comp</div></td>
+            <td><div class="status-badge sb-received"><div class="dot"></div>Docs Received</div></td>
+            <td><span style="font-size:11px;color:#475569">3 of 3 received</span></td>
+            <td><div class="td-hours ai">0.5h</div></td>
+            <td><div class="td-hours manual">4.0h</div></td>
+            <td><div class="td-age">6d</div></td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="td-company">Great Lakes Roofing Co.</div>
+            </td>
+            <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:#475569">MSI-2024-40288</span></td>
+            <td><div class="td-type">General Liability</div></td>
+            <td><div class="status-badge sb-requested"><div class="dot"></div>Docs Requested</div></td>
+            <td><span style="font-size:11px;color:#D97706">0 of 3 received</span></td>
+            <td><div class="td-hours ai">0.2h</div></td>
+            <td><div class="td-hours manual">4.5h</div></td>
+            <td><div class="td-age age-warn">22d</div></td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="td-company">Lakeside Storage Solutions</div>
+            </td>
+            <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:#475569">MSI-2024-10944</span></td>
+            <td><div class="td-type">Commercial Property</div></td>
+            <td><div class="status-badge sb-ready"><div class="dot"></div>Ready for Review</div></td>
+            <td><span style="font-size:11px;color:#475569">2 of 2 received</span></td>
+            <td><div class="td-hours ai">0.7h</div></td>
+            <td><div class="td-hours manual">3.5h</div></td>
+            <td><div class="td-age">5d</div></td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="td-company">Central Transport Group</div>
+            </td>
+            <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:#475569">MSI-2023-62819</span></td>
+            <td><div class="td-type">Commercial Auto</div></td>
+            <td><div class="status-badge sb-reconciling"><div class="dot"></div>Reconciling</div></td>
+            <td><span style="font-size:11px;color:#475569">6 of 6 received</span></td>
+            <td><div class="td-hours ai">1.1h</div></td>
+            <td><div class="td-hours manual">6.5h</div></td>
+            <td><div class="td-age">14d</div></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="rp-hdr">
+      <div class="rp-title">Consolidated Freight LLC</div>
+      <div class="rp-sub">MSI-2023-70441 &nbsp;·&nbsp; Commercial Auto &nbsp;·&nbsp; Opened Apr 24</div>
+    </div>
+    <div class="rp-body">
+
+      <div class="rp-section">
+        <div class="rp-section-label">Audit Detail</div>
+        <div class="audit-detail">
+          <div class="ad-row"><div class="ad-label">Policy Period</div><div class="ad-value mono">Apr 1, 2023 – Mar 31, 2024</div></div>
+          <div class="ad-row"><div class="ad-label">Audit Basis</div><div class="ad-value">Payroll &amp; Mileage Records</div></div>
+          <div class="ad-row"><div class="ad-label">Estimated Premium</div><div class="ad-value mono">$38,400</div></div>
+          <div class="ad-row"><div class="ad-label">Documents Received</div><div class="ad-value green">4 of 4 ✓</div></div>
+          <div class="ad-row"><div class="ad-label">Reconciliation Status</div><div class="ad-value amber">In progress</div></div>
+          <div class="ad-row" style="margin:0"><div class="ad-label">Auditor</div><div class="ad-value">Patricia Olumide</div></div>
+        </div>
+      </div>
+
+      <div class="rp-section">
+        <div class="rp-section-label">Process Timeline</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot tld-done">✓</div>
+            <div class="tl-text">
+              <div class="tl-name">Audit notice sent to policyholder</div>
+              <div class="tl-date">Apr 24, 2026 — Automated</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot tld-done">✓</div>
+            <div class="tl-text">
+              <div class="tl-name">Document request issued</div>
+              <div class="tl-date">Apr 24, 2026 — Automated</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot tld-done">✓</div>
+            <div class="tl-text">
+              <div class="tl-name">All documents received</div>
+              <div class="tl-date">Apr 29, 2026 — 4 files</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot tld-active">→</div>
+            <div class="tl-text">
+              <div class="tl-name">Reconciliation in progress</div>
+              <div class="tl-date">May 2, 2026 — AI extracting figures</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot tld-pending">○</div>
+            <div class="tl-text">
+              <div class="tl-name">Summary ready for auditor review</div>
+              <div class="tl-date">Est. May 2, 2026</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot tld-pending">○</div>
+            <div class="tl-text">
+              <div class="tl-name">Billing record updated</div>
+              <div class="tl-date">Pending auditor sign-off</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-section">
+        <div class="rp-section-label">Hours — This Audit</div>
+        <div class="hours-compare">
+          <div class="hc-row">
+            <div class="hc-label">Manual process (est.)</div>
+            <div class="hc-val" style="color:#94A3B8;text-decoration:line-through">5.0h</div>
+          </div>
+          <div class="hc-row" style="margin:0">
+            <div class="hc-label">AI-assisted (actual)</div>
+            <div class="hc-val" style="color:#16A34A">0.6h</div>
+          </div>
+          <hr class="hc-divider" />
+          <div class="hc-saving">
+            <div class="hc-saving-label">Staff time saved</div>
+            <div class="hc-saving-val">4.4h</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rp-section">
+        <div class="rp-section-label">Month-to-Date — All Audits</div>
+        <div class="agg-section">
+          <div class="agg-row"><div class="agg-label">Audits completed</div><div class="agg-val">31</div></div>
+          <div class="agg-row"><div class="agg-label">Avg. staff hours (AI)</div><div class="agg-val green">0.7h</div></div>
+          <div class="agg-row"><div class="agg-label">Avg. staff hours (manual est.)</div><div class="agg-val">4.8h</div></div>
+          <div class="agg-row"><div class="agg-label">Total hours saved</div><div class="agg-val green">123h</div></div>
+          <div class="agg-row"><div class="agg-label">Avg. cycle time</div><div class="agg-val">9.2 days</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
