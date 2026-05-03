@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clearpath Distribution | AR Collections Agent</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F1F5F9; min-width: 1440px; font-size: 13px; color: #1E293B; }
+
+  /* TOP NAV */
+  .topnav { background: #1F3864; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+  .topnav-left { display: flex; align-items: center; gap: 16px; }
+  .app-name { color: #fff; font-size: 15px; font-weight: 600; }
+  .app-name span { color: #4FC3A1; }
+  .live-badge { background: #4FC3A1; color: #0F1C2E; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .topnav-right { display: flex; align-items: center; gap: 20px; }
+  .sync-label { color: #94A3B8; font-size: 11px; }
+  .alert-bell { color: #F59E0B; font-size: 16px; position: relative; cursor: pointer; display: inline-block; }
+  .alert-count { position: absolute; top: -6px; right: -6px; background: #EF4444; color: #fff; font-size: 9px; font-weight: 700; border-radius: 50%; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; }
+  .user-chip { background: #2D4A7A; border-radius: 20px; padding: 4px 12px 4px 4px; display: flex; align-items: center; gap: 8px; }
+  .user-avatar { width: 26px; height: 26px; border-radius: 50%; background: #4FC3A1; color: #0F1C2E; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .user-name { color: #E2E8F0; font-size: 11px; }
+
+  /* SUB NAV */
+  .subnav { background: #162D56; height: 38px; display: flex; align-items: stretch; padding: 0 24px; border-bottom: 1px solid #1F3864; }
+  .subnav a { color: #94A3B8; font-size: 12px; padding: 0 16px; display: flex; align-items: center; text-decoration: none; border-bottom: 2px solid transparent; }
+  .subnav a.active { color: #4FC3A1; border-bottom-color: #4FC3A1; font-weight: 600; }
+
+  /* ALERT BANNER */
+  .alert-banner { background: #FEF3C7; border-bottom: 1px solid #F59E0B; padding: 10px 24px; display: flex; align-items: center; gap: 12px; }
+  .alert-icon { color: #D97706; font-size: 16px; }
+  .alert-text { font-size: 12px; color: #92400E; font-weight: 500; }
+  .alert-text strong { font-weight: 700; }
+  .alert-action { margin-left: auto; background: #D97706; color: #fff; border: none; border-radius: 5px; padding: 5px 14px; font-size: 11px; font-weight: 600; cursor: pointer; }
+
+  /* KPI STRIP */
+  .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; padding: 16px 24px 0; }
+  .kpi-card { background: #fff; border-radius: 8px; padding: 14px 18px; border: 1px solid #E2E8F0; position: relative; overflow: hidden; }
+  .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
+  .kpi-card.green::after { background: #10B981; }
+  .kpi-card.blue::after { background: #3B82F6; }
+  .kpi-card.amber::after { background: #F59E0B; }
+  .kpi-card.red::after { background: #EF4444; }
+  .kpi-card.purple::after { background: #8B5CF6; }
+  .kpi-label { font-size: 10px; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: #1E293B; line-height: 1; }
+  .kpi-sub { font-size: 10px; color: #64748B; margin-top: 4px; }
+  .trend-up { color: #10B981; font-weight: 600; }
+  .trend-down { color: #EF4444; font-weight: 600; }
+  .trend-warn { color: #F59E0B; font-weight: 600; }
+
+  /* MAIN LAYOUT */
+  .main-wrap { display: grid; grid-template-columns: 1fr 340px; gap: 16px; padding: 16px 24px; }
+
+  /* FILTER BAR */
+  .filterbar { background: #fff; border: 1px solid #E2E8F0; border-radius: 8px 8px 0 0; border-bottom: none; padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  .filter-chip { border: 1px solid #CBD5E1; border-radius: 20px; padding: 4px 14px; font-size: 11px; color: #475569; cursor: pointer; background: #F8FAFC; }
+  .filter-chip.active { background: #EFF6FF; border-color: #3B82F6; color: #1D4ED8; font-weight: 600; }
+  .filter-chip.red-active { background: #FEE2E2; border-color: #EF4444; color: #991B1B; font-weight: 600; }
+
+  /* TABLE */
+  .table-panel { background: #fff; border-radius: 0 0 8px 8px; border: 1px solid #E2E8F0; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #F8FAFC; color: #475569; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 14px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+  td { padding: 9px 14px; border-bottom: 1px solid #F1F5F9; color: #334155; font-size: 12px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F8FAFC; }
+  tr.amber-row td { background: #FFFBEB; }
+  tr.amber-row:hover td { background: #FEF3C7; }
+  tr.red-row td { background: #FFF1F2; }
+  tr.red-row:hover td { background: #FEE2E2; }
+
+  .status-pill { display: inline-block; border-radius: 10px; padding: 2px 9px; font-size: 10px; font-weight: 600; }
+  .pill-green { background: #D1FAE5; color: #065F46; }
+  .pill-blue { background: #DBEAFE; color: #1E40AF; }
+  .pill-amber { background: #FEF3C7; color: #92400E; }
+  .pill-red { background: #FEE2E2; color: #991B1B; }
+  .pill-grey { background: #F1F5F9; color: #475569; }
+  .pill-purple { background: #EDE9FE; color: #5B21B6; }
+
+  .dc-tag { background: #F0FDF4; color: #166534; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: 500; }
+  .action-link { color: #3B82F6; font-size: 11px; font-weight: 500; cursor: pointer; text-decoration: none; }
+
+  .overdue-badge { display: inline-block; font-size: 11px; font-weight: 700; }
+  .overdue-current { color: #10B981; }
+  .overdue-mild { color: #F59E0B; }
+  .overdue-severe { color: #EF4444; }
+
+  /* SIDE PANEL */
+  .side-stack { display: flex; flex-direction: column; gap: 12px; }
+  .panel { background: #fff; border-radius: 8px; border: 1px solid #E2E8F0; }
+  .panel-header { padding: 14px 18px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 13px; font-weight: 600; color: #1E293B; }
+  .panel-sub { font-size: 11px; color: #64748B; margin-top: 2px; }
+
+  /* DSO METER */
+  .dso-ring-wrap { padding: 18px; text-align: center; }
+  .dso-number { font-size: 42px; font-weight: 800; color: #1F3864; line-height: 1; }
+  .dso-label { font-size: 12px; color: #64748B; margin-top: 4px; }
+  .dso-compare { display: flex; justify-content: center; gap: 24px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #F1F5F9; }
+  .dso-col { text-align: center; }
+  .dso-col-val { font-size: 18px; font-weight: 700; }
+  .dso-col-lbl { font-size: 10px; color: #64748B; margin-top: 2px; }
+
+  /* BUCKET BREAKDOWN */
+  .bucket-row { padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #F8FAFC; }
+  .bucket-row:last-child { border-bottom: none; }
+  .bucket-label { font-size: 12px; color: #334155; font-weight: 500; }
+  .bucket-right { text-align: right; }
+  .bucket-count { font-size: 13px; font-weight: 700; color: #1E293B; }
+  .bucket-amount { font-size: 10px; color: #64748B; }
+  .bucket-bar-wrap { padding: 0 18px 12px; }
+  .bar-outer { background: #E2E8F0; border-radius: 4px; height: 6px; width: 100%; margin-top: 4px; }
+  .bar-inner { border-radius: 4px; height: 6px; }
+
+  /* AGENT ACTIVITY LOG */
+  .log-item { padding: 10px 18px; border-bottom: 1px solid #F8FAFC; display: flex; gap: 10px; }
+  .log-item:last-child { border-bottom: none; }
+  .log-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .log-dot-green { background: #10B981; }
+  .log-dot-blue { background: #3B82F6; }
+  .log-dot-amber { background: #F59E0B; }
+  .log-dot-red { background: #EF4444; }
+  .log-text { font-size: 11px; color: #334155; line-height: 1.5; }
+  .log-time { font-size: 10px; color: #94A3B8; margin-top: 2px; }
+
+  /* FOOTER */
+  .footer { background: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 8px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .footer-sources { font-size: 10px; color: #94A3B8; }
+  .footer-sources span { color: #64748B; font-weight: 500; }
+  .footer-right { font-size: 10px; color: #94A3B8; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-left">
+    <div class="app-name">Clearpath Distribution <span>| AR Collections Agent</span></div>
+    <div class="live-badge">● LIVE</div>
+  </div>
+  <div class="topnav-right">
+    <div class="sync-label">Last sync: Acumatica AR Module · 4 minutes ago</div>
+    <div class="alert-bell">
+      &#9888;
+      <div class="alert-count">5</div>
+    </div>
+    <div class="user-chip">
+      <div class="user-avatar">JW</div>
+      <div class="user-name">James Whitfield, COO</div>
+    </div>
+  </div>
+</nav>
+
+<!-- SUB NAV -->
+<nav class="subnav">
+  <a href="#">Dashboard</a>
+  <a href="#">Order Entry Agent</a>
+  <a href="#">Back-Order Queue</a>
+  <a href="#">Quote Pipeline</a>
+  <a href="#" class="active">AR Collections</a>
+  <a href="#">Reports</a>
+</nav>
+
+<!-- ALERT BANNER -->
+<div class="alert-banner">
+  <div class="alert-icon">⚠</div>
+  <div class="alert-text"><strong>5 accounts escalated to coordinator this morning.</strong> 3 accounts in the 61–90 day bucket have not responded to two AI outreach cycles. Manual follow-up required today.</div>
+  <button class="alert-action">View Escalations</button>
+</div>
+
+<!-- KPI STRIP -->
+<div class="kpi-strip">
+  <div class="kpi-card blue">
+    <div class="kpi-label">Open AR Balance</div>
+    <div class="kpi-value">$4.2M</div>
+    <div class="kpi-sub">312 open accounts</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="kpi-label">Current DSO</div>
+    <div class="kpi-value">38<span style="font-size:14px;font-weight:400;"> days</span></div>
+    <div class="kpi-sub"><span class="trend-up">↓ 14 days vs. 90-day prior avg.</span></div>
+  </div>
+  <div class="kpi-card green">
+    <div class="kpi-label">Contacted Today (AI)</div>
+    <div class="kpi-value">286</div>
+    <div class="kpi-sub">vs. ~40/day manual capacity</div>
+  </div>
+  <div class="kpi-card amber">
+    <div class="kpi-label">31–60 Day Bucket</div>
+    <div class="kpi-value">$618K</div>
+    <div class="kpi-sub"><span class="trend-warn">48 accounts · action in progress</span></div>
+  </div>
+  <div class="kpi-card red">
+    <div class="kpi-label">61–90+ Day Bucket</div>
+    <div class="kpi-value">$291K</div>
+    <div class="kpi-sub"><span class="trend-down">21 accounts · 5 escalated</span></div>
+  </div>
+  <div class="kpi-card purple">
+    <div class="kpi-label">Promise-to-Pay This Week</div>
+    <div class="kpi-value">$184K</div>
+    <div class="kpi-sub">29 accounts committed via AI</div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-wrap">
+
+  <!-- LEFT: AR TABLE -->
+  <div>
+    <div class="filterbar">
+      <span class="filter-chip active">All Accounts</span>
+      <span class="filter-chip">Current (0–30)</span>
+      <span class="filter-chip">31–60 Days</span>
+      <span class="filter-chip red-active">61–90+ Days ⚑</span>
+      <span class="filter-chip">Promise-to-Pay</span>
+      <span class="filter-chip">Escalated</span>
+      <span style="margin-left:auto;font-size:11px;color:#64748B;">312 accounts · sorted by days overdue desc.</span>
+    </div>
+    <div class="table-panel">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Fulfillment DC</th>
+            <th>Balance</th>
+            <th>Days Overdue</th>
+            <th>Last AI Contact</th>
+            <th>Contact Method</th>
+            <th>Response</th>
+            <th>Agent Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="red-row">
+            <td><strong>Calloway Brothers Supply</strong></td>
+            <td><span class="dc-tag">DC West</span></td>
+            <td><strong>$74,200</strong></td>
+            <td><span class="overdue-badge overdue-severe">88 days</span></td>
+            <td>Apr 29, 2026</td>
+            <td>Email + Phone</td>
+            <td><span class="status-pill pill-red">No Response</span></td>
+            <td><span class="status-pill pill-red">Escalated</span></td>
+            <td><a class="action-link">Escalate →</a></td>
+          </tr>
+          <tr class="red-row">
+            <td><strong>Granite Ridge Distributors</strong></td>
+            <td><span class="dc-tag">DC West</span></td>
+            <td><strong>$52,840</strong></td>
+            <td><span class="overdue-badge overdue-severe">74 days</span></td>
+            <td>Apr 30, 2026</td>
+            <td>Email</td>
+            <td><span class="status-pill pill-red">No Response</span></td>
+            <td><span class="status-pill pill-red">Escalated</span></td>
+            <td><a class="action-link">Escalate →</a></td>
+          </tr>
+          <tr class="red-row">
+            <td><strong>Southern Commodities LLC</strong></td>
+            <td><span class="dc-tag">Atlanta Hub</span></td>
+            <td><strong>$38,100</strong></td>
+            <td><span class="overdue-badge overdue-severe">67 days</span></td>
+            <td>May 1, 2026</td>
+            <td>Email + SMS</td>
+            <td><span class="status-pill pill-amber">Partial Reply</span></td>
+            <td><span class="status-pill pill-amber">Awaiting PTP</span></td>
+            <td><a class="action-link">Follow Up</a></td>
+          </tr>
+          <tr class="amber-row">
+            <td><strong>Pinnacle Brands Group</strong></td>
+            <td><span class="dc-tag">Atlanta Hub</span></td>
+            <td><strong>$61,450</strong></td>
+            <td><span class="overdue-badge overdue-mild">52 days</span></td>
+            <td>May 2, 2026</td>
+            <td>Email</td>
+            <td><span class="status-pill pill-blue">Promise to Pay</span></td>
+            <td><span class="status-pill pill-blue">PTP: May 9</span></td>
+            <td><a class="action-link">Log PTP</a></td>
+          </tr>
+          <tr class="amber-row">
+            <td><strong>Midwest Depot Inc.</strong></td>
+            <td><span class="dc-tag">DC East</span></td>
+            <td><strong>$29,670</strong></td>
+            <td><span class="overdue-badge overdue-mild">44 days</span></td>
+            <td>May 2, 2026</td>
+            <td>Email + Phone</td>
+            <td><span class="status-pill pill-green">Responded</span></td>
+            <td><span class="status-pill pill-blue">PTP: May 6</span></td>
+            <td><a class="action-link">Log PTP</a></td>
+          </tr>
+          <tr class="amber-row">
+            <td><strong>Trident Commercial Co.</strong></td>
+            <td><span class="dc-tag">DC East</span></td>
+            <td><strong>$18,320</strong></td>
+            <td><span class="overdue-badge overdue-mild">38 days</span></td>
+            <td>May 2, 2026</td>
+            <td>Email</td>
+            <td><span class="status-pill pill-amber">No Response</span></td>
+            <td><span class="status-pill pill-amber">2nd Cycle Sent</span></td>
+            <td><a class="action-link">View</a></td>
+          </tr>
+          <tr>
+            <td><strong>Hargrove Supply Co.</strong></td>
+            <td><span class="dc-tag">DC East</span></td>
+            <td><strong>$22,500</strong></td>
+            <td><span class="overdue-badge overdue-mild">31 days</span></td>
+            <td>May 2, 2026</td>
+            <td>Email</td>
+            <td><span class="status-pill pill-green">Responded</span></td>
+            <td><span class="status-pill pill-blue">PTP: May 7</span></td>
+            <td><a class="action-link">Log PTP</a></td>
+          </tr>
+          <tr>
+            <td><strong>Southland Wholesale LLC</strong></td>
+            <td><span class="dc-tag">Atlanta Hub</span></td>
+            <td><strong>$11,880</strong></td>
+            <td><span class="overdue-badge overdue-current">18 days</span></td>
+            <td>May 2, 2026</td>
+            <td>Email</td>
+            <td><span class="status-pill pill-green">Responded</span></td>
+            <td><span class="status-pill pill-green">In Cycle</span></td>
+            <td><a class="action-link">View</a></td>
+          </tr>
+          <tr>
+            <td><strong>Beacon Supply Group</strong></td>
+            <td><span class="dc-tag">DC East</span></td>
+            <td><strong>$8,440</strong></td>
+            <td><span class="overdue-badge overdue-current">12 days</span></td>
+            <td>May 1, 2026</td>
+            <td>Email</td>
+            <td><span class="status-pill pill-green">Responded</span></td>
+            <td><span class="status-pill pill-green">In Cycle</span></td>
+            <td><a class="action-link">View</a></td>
+          </tr>
+          <tr>
+            <td><strong>ProLink Industrial</strong></td>
+            <td><span class="dc-tag">DC West</span></td>
+            <td><strong>$6,910</strong></td>
+            <td><span class="overdue-badge overdue-current">8 days</span></td>
+            <td>May 2, 2026</td>
+            <td>Email</td>
+            <td><span class="status-pill pill-grey">Pending</span></td>
+            <td><span class="status-pill pill-grey">1st Notice Sent</span></td>
+            <td><a class="action-link">View</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="padding:10px 18px;background:#F8FAFC;border-top:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;border-radius:0 0 8px 8px;">
+        <div style="font-size:11px;color:#64748B;">Showing 10 of 312 accounts</div>
+        <div style="display:flex;gap:8px;">
+          <span style="font-size:11px;color:#3B82F6;cursor:pointer;">Next →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="side-stack">
+
+    <!-- DSO PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Days Sales Outstanding</div>
+          <div class="panel-sub">Rolling 30-day average</div>
+        </div>
+      </div>
+      <div class="dso-ring-wrap">
+        <div style="font-size:11px;color:#64748B;text-align:center;margin-bottom:6px;">Current DSO</div>
+        <div class="dso-number">38</div>
+        <div class="dso-label">days</div>
+        <div class="dso-compare">
+          <div class="dso-col">
+            <div class="dso-col-val" style="color:#EF4444;">52</div>
+            <div class="dso-col-lbl">90-day prior avg.</div>
+          </div>
+          <div class="dso-col">
+            <div class="dso-col-val" style="color:#10B981;">−14</div>
+            <div class="dso-col-lbl">improvement</div>
+          </div>
+          <div class="dso-col">
+            <div class="dso-col-val" style="color:#3B82F6;">34</div>
+            <div class="dso-col-lbl">industry target</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:10px 18px;background:#F0FDF4;border-top:1px solid #E2E8F0;border-radius:0 0 8px 8px;text-align:center;">
+        <div style="font-size:11px;font-weight:600;color:#166534;">Est. cash released to date: ~$520K</div>
+        <div style="font-size:10px;color:#16A34A;margin-top:2px;">Based on 14-day DSO reduction × avg. daily revenue of $37K</div>
+      </div>
+    </div>
+
+    <!-- BUCKET BREAKDOWN -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Aging Bucket Breakdown</div>
+      </div>
+      <div class="bucket-row">
+        <div class="bucket-label" style="color:#10B981;">Current (0–30 days)</div>
+        <div class="bucket-right">
+          <div class="bucket-count">243 accts</div>
+          <div class="bucket-amount">$3.29M</div>
+        </div>
+      </div>
+      <div class="bucket-bar-wrap">
+        <div class="bar-outer"><div class="bar-inner" style="background:#10B981;width:78%;"></div></div>
+      </div>
+      <div class="bucket-row">
+        <div class="bucket-label" style="color:#F59E0B;">31–60 Days Overdue</div>
+        <div class="bucket-right">
+          <div class="bucket-count">48 accts</div>
+          <div class="bucket-amount">$618K</div>
+        </div>
+      </div>
+      <div class="bucket-bar-wrap">
+        <div class="bar-outer"><div class="bar-inner" style="background:#F59E0B;width:15%;"></div></div>
+      </div>
+      <div class="bucket-row">
+        <div class="bucket-label" style="color:#EF4444;">61–90+ Days Overdue</div>
+        <div class="bucket-right">
+          <div class="bucket-count">21 accts</div>
+          <div class="bucket-amount">$291K</div>
+        </div>
+      </div>
+      <div class="bucket-bar-wrap">
+        <div class="bar-outer"><div class="bar-inner" style="background:#EF4444;width:7%;"></div></div>
+      </div>
+    </div>
+
+    <!-- AGENT ACTIVITY LOG -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Agent Activity — Today</div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot log-dot-red"></div>
+        <div>
+          <div class="log-text"><strong>Calloway Brothers Supply</strong> — 3rd outreach sent. No reply in 9 days. Escalated to Priya Nair (AR coordinator).</div>
+          <div class="log-time">09:14 AM</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot log-dot-blue"></div>
+        <div>
+          <div class="log-text"><strong>Pinnacle Brands Group</strong> — Promise-to-pay confirmed via email reply. Payment expected May 9. Record updated.</div>
+          <div class="log-time">08:52 AM</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot log-dot-green"></div>
+        <div>
+          <div class="log-text"><strong>Midwest Depot Inc.</strong> — Payment confirmed received. Account moved to current. Invoice INV-2026-0814 cleared.</div>
+          <div class="log-time">08:31 AM</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot log-dot-amber"></div>
+        <div>
+          <div class="log-text"><strong>Southern Commodities LLC</strong> — Partial reply received. Customer requested 2-week extension. Routed to coordinator for approval.</div>
+          <div class="log-time">08:07 AM</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot log-dot-green"></div>
+        <div>
+          <div class="log-text"><strong>Batch run complete</strong> — 286 accounts contacted. 12 promise-to-pay responses received. 5 accounts escalated.</div>
+          <div class="log-time">07:00 AM</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-sources">Data sources: <span>Acumatica AR Module</span> · <span>Clearpath Customer Master</span> · <span>Outreach Communication Log</span></div>
+  <div class="footer-right">Clearpath Distribution AR Collections Agent · Powered by Tayana Solutions · v2.1.4</div>
+</div>
+
+</body>
+</html>
