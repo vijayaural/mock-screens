@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulsar — AI Chat Widget Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      background: #F1F5F9;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .mock {
+      position: relative;
+      width: 1200px;
+      max-width: 100%;
+      min-height: 800px;
+      background: #F8FAFC;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: #0F172A;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .logo { color: #fff; font-weight: 600; font-size: 16px; letter-spacing: -0.4px; }
+    .logo span { color: #38BDF8; }
+    .trial-badge {
+      margin-left: auto;
+      background: rgba(251,191,36,0.12);
+      border: 1px solid rgba(251,191,36,0.3);
+      color: #FCD34D;
+      font-size: 11.5px;
+      padding: 3px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.1px;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 14px; margin-left: 14px; }
+    .bell-wrap { position: relative; color: #94A3B8; cursor: pointer; }
+    .bell-wrap i { font-size: 18px; }
+    .bell-badge {
+      position: absolute; top: -3px; right: -3px;
+      width: 9px; height: 9px;
+      background: #E24B4A; border-radius: 50%;
+      border: 2px solid #0F172A;
+    }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #38BDF8;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: #0F172A;
+    }
+
+    /* ── SHELL BODY ── */
+    .shell-body { display: flex; min-height: 748px; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 188px;
+      background: #fff;
+      border-right: 0.5px solid #E2E8F0;
+      padding: 14px 0;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 16px;
+      cursor: pointer;
+      color: #64748B;
+      font-size: 13px;
+      border-left: 2.5px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-item:hover { background: #F8FAFC; color: #1E293B; }
+    .nav-item.active {
+      color: #0EA5E9;
+      background: rgba(14,165,233,0.06);
+      border-left-color: #38BDF8;
+      padding-left: 13.5px;
+      font-weight: 500;
+    }
+    .nav-item i { font-size: 16px; flex-shrink: 0; }
+    .nav-divider { height: 0.5px; background: #E2E8F0; margin: 6px 16px; }
+    .nav-sub {
+      padding: 5px 16px 5px 41px;
+      font-size: 12px; color: #94A3B8; cursor: pointer;
+    }
+    .nav-sub:hover { color: #64748B; }
+
+    /* ── MAIN CONTENT ── */
+    .main { flex: 1; padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; overflow: auto; }
+
+    .page-header { display: flex; align-items: baseline; justify-content: space-between; }
+    .page-title { font-size: 20px; font-weight: 600; color: #0F172A; }
+    .page-date { font-size: 12.5px; color: #94A3B8; }
+
+    /* Alert banner */
+    .alert-banner {
+      background: rgba(251,191,36,0.07);
+      border: 0.5px solid rgba(251,191,36,0.35);
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12.5px; color: #64748B;
+    }
+    .alert-banner i { color: #FBBF24; font-size: 16px; flex-shrink: 0; }
+    .alert-link { color: #38BDF8; margin-left: 4px; cursor: pointer; }
+
+    .section-label {
+      font-size: 10.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: #94A3B8; margin-bottom: 10px;
+    }
+
+    /* Live metrics */
+    .metrics-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+    .metric-card {
+      background: #fff;
+      border: 0.5px solid #E2E8F0;
+      border-radius: 10px; padding: 16px 18px;
+    }
+    .metric-label { font-size: 11.5px; color: #94A3B8; margin-bottom: 6px; }
+    .metric-value { font-size: 26px; font-weight: 600; color: #0F172A; line-height: 1; }
+    .metric-sub { font-size: 11px; color: #94A3B8; margin-top: 4px; }
+    .metric-sub.green { color: #1D9E75; }
+
+    /* Pending handover */
+    .pending-card {
+      background: rgba(226,75,74,0.04);
+      border: 0.5px solid rgba(226,75,74,0.22);
+      border-radius: 10px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .pulse-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #E24B4A; flex-shrink: 0;
+      animation: pulse-red 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.8); }
+    }
+    .pending-text { flex: 1; }
+    .pending-label {
+      font-size: 10.5px; font-weight: 600; color: #DC2626;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .pending-visitor { font-size: 13px; color: #1E293B; margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+    .hot-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: #FEE2E2; color: #DC2626;
+      font-size: 10px; font-weight: 600;
+      padding: 2px 8px; border-radius: 10px;
+    }
+    .claim-btn {
+      background: #0F172A; color: #fff;
+      border: none; border-radius: 7px;
+      padding: 7px 16px; font-size: 12px; font-weight: 500;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .claim-btn:hover { background: #1E293B; }
+
+    /* Today stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .stat-card { background: #F1F5F9; border-radius: 10px; padding: 14px 16px; }
+    .stat-num { font-size: 24px; font-weight: 600; color: #0F172A; }
+    .stat-num.red { color: #E24B4A; }
+    .stat-lbl { font-size: 11.5px; color: #64748B; margin-top: 3px; }
+
+    /* Bottom row cards */
+    .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .info-card {
+      background: #fff; border: 0.5px solid #E2E8F0;
+      border-radius: 10px; padding: 16px 18px;
+    }
+    .info-card-title {
+      font-size: 12.5px; font-weight: 600; color: #1E293B;
+      margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
+    }
+    .info-card-title i { font-size: 16px; color: #64748B; }
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 7px; font-size: 12.5px;
+    }
+    .info-key { color: #94A3B8; }
+    .info-val { color: #1E293B; font-weight: 500; }
+    .info-val.green { color: #1D9E75; }
+    .info-val.amber { color: #CA8A04; }
+    .progress-bar { height: 3px; background: #E2E8F0; border-radius: 2px; margin-top: 12px; }
+    .progress-fill { height: 100%; background: #38BDF8; border-radius: 2px; width: 73%; }
+    .action-btn {
+      margin-top: 12px; background: transparent;
+      border: 0.5px solid #E2E8F0; border-radius: 8px;
+      padding: 7px 0; font-size: 12px; cursor: pointer;
+      color: #64748B; font-family: 'DM Sans', sans-serif;
+      width: 100%; text-align: center;
+      transition: all 0.15s;
+    }
+    .action-btn:hover { background: #F8FAFC; border-color: #CBD5E1; color: #1E293B; }
+    .activate-link {
+      color: #38BDF8; font-size: 12px; cursor: pointer;
+      display: block; margin-top: 12px; text-align: center;
+      border: 0.5px solid rgba(56,189,248,0.3); border-radius: 8px;
+      padding: 7px 0; transition: all 0.15s;
+    }
+    .activate-link:hover { background: rgba(56,189,248,0.05); }
+
+    /* ── WIDGET ── */
+    .widget {
+      position: absolute;
+      bottom: 24px; right: 24px;
+      width: 340px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+      background: #fff;
+    }
+
+    .w-header {
+      background: #38BDF8; padding: 13px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .w-bot-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.95);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
+    }
+    .w-name { color: #0F172A; font-weight: 600; font-size: 13.5px; }
+    .w-label { color: rgba(15,23,42,0.55); font-size: 10.5px; margin-top: 1px; }
+    .w-close-btn { margin-left: auto; color: rgba(15,23,42,0.45); cursor: pointer; font-size: 18px; }
+
+    .w-messages {
+      background: #fff; padding: 14px 12px;
+      display: flex; flex-direction: column; gap: 10px;
+      max-height: 300px; overflow-y: auto;
+    }
+
+    .w-row { display: flex; gap: 7px; align-items: flex-end; }
+    .w-row.visitor { flex-direction: row-reverse; }
+
+    .w-mini-avatar {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: #38BDF8;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0;
+    }
+
+    .w-bubble {
+      padding: 9px 12px; border-radius: 14px;
+      font-size: 12.5px; line-height: 1.5;
+      max-width: 80%;
+    }
+    .w-bubble.bot { background: #F1F5F9; color: #1E293B; border-bottom-left-radius: 3px; }
+    .w-bubble.visitor {
+      background: rgba(56,189,248,0.1);
+      border: 0.5px solid rgba(56,189,248,0.25);
+      color: #1E293B; border-bottom-right-radius: 3px;
+    }
+
+    .w-typing-row { display: flex; gap: 7px; align-items: flex-end; }
+    .w-typing-bubble {
+      background: #F1F5F9; border-radius: 14px;
+      border-bottom-left-radius: 3px;
+      padding: 10px 13px;
+      display: flex; gap: 4px; align-items: center;
+    }
+    .w-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #94A3B8;
+    }
+    .w-dot:nth-child(1) { animation: bounce 1.2s ease-in-out 0s infinite; }
+    .w-dot:nth-child(2) { animation: bounce 1.2s ease-in-out 0.2s infinite; }
+    .w-dot:nth-child(3) { animation: bounce 1.2s ease-in-out 0.4s infinite; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .w-input-area {
+      background: #fff; border-top: 0.5px solid #E2E8F0;
+      padding: 9px 11px; display: flex; align-items: center; gap: 7px;
+    }
+    .w-input-field {
+      flex: 1; border: 0.5px solid #E2E8F0; border-radius: 22px;
+      padding: 7px 14px; font-size: 12.5px; color: #1E293B;
+      font-family: 'DM Sans', sans-serif; background: #F8FAFC;
+      outline: none; transition: border-color 0.15s;
+    }
+    .w-input-field:focus { border-color: #38BDF8; }
+    .w-send-btn {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #38BDF8; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background 0.15s;
+    }
+    .w-send-btn:hover { background: #0EA5E9; }
+    .w-send-btn i { font-size: 14px; color: #fff; }
+
+    .w-powered {
+      background: #fff; text-align: center;
+      padding: 6px; font-size: 10px; color: #CBD5E1;
+      border-top: 0.5px solid #F1F5F9;
+    }
+
+    /* ── WIDGET LABEL TAG ── */
+    .widget-label {
+      position: absolute;
+      bottom: 24px; right: 372px;
+      background: #0F172A; color: #fff;
+      font-size: 11px; font-weight: 500;
+      padding: 5px 11px; border-radius: 20px;
+      white-space: nowrap;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .widget-label::after {
+      content: '';
+      position: absolute; right: -10px; top: 50%;
+      transform: translateY(-50%);
+      border: 5px solid transparent;
+      border-left-color: #0F172A;
+    }
+    .widget-label-dot { width: 6px; height: 6px; border-radius: 50%; background: #38BDF8; animation: pulse-teal 1.8s ease-in-out infinite; }
+    @keyframes pulse-teal {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="mock">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">pul<span>s</span>ar</div>
+    <div class="trial-badge">⏱ Trial — 22 days remaining</div>
+    <div class="topbar-right">
+      <div class="bell-wrap">
+        <i class="ti ti-bell"></i>
+        <div class="bell-badge"></div>
+      </div>
+      <div class="avatar">SA</div>
+    </div>
+  </div>
+
+  <!-- SHELL -->
+  <div class="shell-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-item active"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+      <div class="nav-item"><i class="ti ti-message-2"></i>Conversations</div>
+      <div class="nav-item"><i class="ti ti-users"></i>Leads</div>
+      <div class="nav-item"><i class="ti ti-chart-bar"></i>Analytics</div>
+      <div class="nav-item"><i class="ti ti-user-check"></i>Agent Perf.</div>
+      <div class="nav-divider"></div>
+      <div class="nav-item"><i class="ti ti-brain"></i>Knowledge</div>
+      <div class="nav-item"><i class="ti ti-user-plus"></i>Team</div>
+      <div class="nav-divider"></div>
+      <div class="nav-item"><i class="ti ti-settings"></i>Settings</div>
+      <div class="nav-sub">Widget</div>
+      <div class="nav-sub">Triggers</div>
+      <div class="nav-sub">Notifications</div>
+      <div class="nav-sub" style="margin-bottom:4px">LLM</div>
+      <div class="nav-divider"></div>
+      <div class="nav-item"><i class="ti ti-license"></i>License</div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-date">Wednesday, 3 June 2026</div>
+      </div>
+
+      <div class="alert-banner">
+        <i class="ti ti-alert-triangle"></i>
+        Handover notifications are not configured. Agents will not receive alerts when a visitor requests a person.
+        <span class="alert-link">Configure now →</span>
+      </div>
+
+      <!-- LIVE -->
+      <div>
+        <div class="section-label">Live right now</div>
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="metric-label">Active chats</div>
+            <div class="metric-value">3</div>
+            <div class="metric-sub green">● Live conversations</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Visitors online</div>
+            <div class="metric-value">14</div>
+            <div class="metric-sub">On your website now</div>
+          </div>
+          <div class="pending-card">
+            <div class="pulse-dot"></div>
+            <div class="pending-text">
+              <div class="pending-label">1 pending handover</div>
+              <div class="pending-visitor">
+                John Smith · Acme Corp
+                <span class="hot-badge">● Hot</span>
+              </div>
+            </div>
+            <button class="claim-btn">Claim</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TODAY -->
+      <div>
+        <div class="section-label">Today</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-num">22</div>
+            <div class="stat-lbl">Conversations</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">4</div>
+            <div class="stat-lbl">Handovers</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">6</div>
+            <div class="stat-lbl">Leads captured</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num red">1</div>
+            <div class="stat-lbl">Missed handover</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW -->
+      <div class="bottom-row">
+        <div class="info-card">
+          <div class="info-card-title"><i class="ti ti-brain"></i>Knowledge base</div>
+          <div class="info-row"><span class="info-key">Last scraped</span><span class="info-val">Today at 2:03 AM</span></div>
+          <div class="info-row"><span class="info-key">Pages indexed</span><span class="info-val green">47 pages</span></div>
+          <div class="info-row"><span class="info-key">Status</span><span class="info-val green">● Idle</span></div>
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+          <button class="action-btn">Scrape now</button>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title"><i class="ti ti-license"></i>License</div>
+          <div class="info-row"><span class="info-key">Status</span><span class="info-val amber">⏱ Trial active</span></div>
+          <div class="info-row"><span class="info-key">Started</span><span class="info-val">05 May 2026</span></div>
+          <div class="info-row"><span class="info-key">Expires</span><span class="info-val">04 June 2026</span></div>
+          <div class="info-row"><span class="info-key">Domain</span><span class="info-val">acmecorp.com</span></div>
+          <a class="activate-link">Activate license key →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- WIDGET LABEL -->
+  <div class="widget-label">
+    <div class="widget-label-dot"></div>
+    Live on your website
+  </div>
+
+  <!-- WIDGET -->
+  <div class="widget">
+    <div class="w-header">
+      <div class="w-bot-icon">🤖</div>
+      <div>
+        <div class="w-name">Aria</div>
+        <div class="w-label">AI-Powered</div>
+      </div>
+      <div class="w-close-btn"><i class="ti ti-x"></i></div>
+    </div>
+
+    <div class="w-messages">
+      <div class="w-row">
+        <div class="w-mini-avatar">A</div>
+        <div class="w-bubble bot">Hi there. I am an AI assistant trained on this website. How can I help you today?</div>
+      </div>
+      <div class="w-row visitor">
+        <div class="w-bubble visitor">What does your AI readiness assessment include?</div>
+      </div>
+      <div class="w-row">
+        <div class="w-mini-avatar">A</div>
+        <div class="w-bubble bot">Our readiness assessment covers five core areas: data infrastructure, process mapping, team capability, technology stack, and ROI potential.<br><br>Each area is evaluated over a 5-day on-site engagement with your team...</div>
+      </div>
+      <div class="w-typing-row">
+        <div class="w-mini-avatar">A</div>
+        <div class="w-typing-bubble">
+          <div class="w-dot"></div>
+          <div class="w-dot"></div>
+          <div class="w-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-input-area">
+      <input class="w-input-field" type="text" placeholder="Type a message...">
+      <button class="w-send-btn"><i class="ti ti-send"></i></button>
+    </div>
+    <div class="w-powered">Powered by Tayana Solutions</div>
+  </div>
+
+</div>
+</body>
+</html>
